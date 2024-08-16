@@ -34,15 +34,15 @@ def debug_dump_variables(obj):
     """
     Dumps variables of provided object to a log file.
     """
-    if not hasattr(obj,'dump_logger'):
-        if hasattr(obj,'batch_folder'):
+    if not hasattr(obj, 'dump_logger'):
+        if hasattr(obj, 'batch_folder'):
             root = obj.batch_folder
         else:
             root = os.getcwd()
-        obj.dump_logger = obj.setup_logger('Debug Dump',log_file='Debug_Dump',root_dir=root)
+        obj.dump_logger = obj.setup_logger('Debug Dump', log_file='Debug_Dump', root_dir=root)
     obj.dump_logger.debug(f"Dumping variables for {type(obj.__name__)}:")
-    for k,v in vars(obj).items():
-        obj.debug_logger.debug(k,v)
+    for k, v in vars(obj).items():
+        obj.debug_logger.debug(k, v)
         obj.dump_logger.debug(f'{k} : {v}')
 
 def get_case_insensitive_key_value(input_dict, key):
@@ -81,15 +81,15 @@ class PMCUtils(ABC):
         """
         Dumps variables of current PlexAutomate object to a log file.
         """
-        if not hasattr(self,'dump_logger'):
-            if hasattr(self,'batch_folder'):
+        if not hasattr(self, 'dump_logger'):
+            if hasattr(self, 'batch_folder'):
                 root = self.batch_folder
             else:
                 root = os.getcwd()
-            self.dump_logger = self.setup_logger('Debug Dump',log_file='Debug_Dump',root_dir=root)
+            self.dump_logger = self.setup_logger('Debug Dump', log_file='Debug_Dump', root_dir=root)
         self.dump_logger.debug(f"Dumping variables for {type(self.__name__)}:")
-        for k,v in vars(self).items():
-            self._debug_print(k,v,level=0)
+        for k, v in vars(self).items():
+            self._debug_print(k, v, level=0)
             self.dump_logger.debug(f'{k} : {v}')
 
 
@@ -107,15 +107,15 @@ class PMCUtils(ABC):
         Only required for classic logins.
         '''
         _pcn_dict = {}
-        with open(csv_file,'r',encoding='utf-8-sig') as c:
+        with open(csv_file, 'r', encoding='utf-8-sig') as c:
             r = csv.DictReader(c)
             for row in r:
                 if not row:
                     continue
-                _pcn_dict[self._get_case_insensitive_key_value(row,'plexus_customer_no')] = self._get_case_insensitive_key_value(row,'plexus_customer_name')
+                _pcn_dict[self._get_case_insensitive_key_value(row, 'plexus_customer_no')] = self._get_case_insensitive_key_value(row, 'plexus_customer_name')
         if not Path('resources').is_dir():
             Path.mkdir('resources')
-        with open('resources/pcn.json','w+',encoding='utf-8') as j:
+        with open('resources/pcn.json', 'w+', encoding='utf-8') as j:
             j.write(json.dumps(_pcn_dict, indent=4, ensure_ascii=False))
 
 

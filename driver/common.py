@@ -21,7 +21,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException,StaleElementReferenceException,NoSuchElementException
+from selenium.common.exceptions import (
+    TimeoutException,
+    StaleElementReferenceException,
+    NoSuchElementException
+    )
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.remote.webelement import WebElement
 from common.exceptions import (
@@ -33,23 +37,12 @@ from common.exceptions import (
 from common.utils import (
     debug_logger,
     # debug_dump_variables,
-    get_case_insensitive_key_value,
-    # csv_to_json,
     frozen_check,
     create_batch_folder,
     # setup_logger
     )
-VALID_ENVIRONMENTS = {'ux','classic'}
+VALID_ENVIRONMENTS = {'ux', 'classic'}
 
-# BANNER_SUCCESS_CLASS = 'plex-banner-success'
-# BANNER_ERROR_CLASS = 'plex-banner-error'
-# BANNER_WARNING_CLASS = 'plex-banner-warning'
-# BANNER_CLASS = 'plex-banner'
-# BANNER_CLASSES = [
-#     BANNER_SUCCESS_CLASS,
-#     BANNER_ERROR_CLASS,
-#     BANNER_WARNING_CLASS
-# ]
 
 BANNER_SUCCESS = 1
 BANNER_WARNING = 2
@@ -61,7 +54,7 @@ BANNER_CLASSES = {
 }
 BANNER_SELECTOR = (By.CLASS_NAME, 'plex-banner')
 
-SIGNON_URL_PARTS = {'/LAUNCHPAGE','/MENUCUSTOMER.ASPX','/MENU.ASPX'}
+SIGNON_URL_PARTS = {'/LAUNCHPAGE', '/MENUCUSTOMER.ASPX', '/MENU.ASPX'}
 
 VISIBLE = 10
 INVISIBLE = 20
@@ -75,20 +68,19 @@ _wait_until = {
 }
 
 
-
 class PlexDriver(ABC):
     """
     Needs login details
     chrome driver download
     TODO - split functionality between classic and ux drivers with shared functionality
     """
-    def __init__(self, environment: Literal['ux','classic'], *args, driver_type: Literal['edge','chrome']='edge',**kwargs):
-        for k,v in kwargs.items():
-            setattr(self,k,v)
+    def __init__(self, environment: Literal['ux', 'classic'], *args, driver_type: Literal['edge', 'chrome']='edge', **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
         self.driver_type = driver_type
-        self.pcn_file_path = kwargs.get('pcn_file_path',Path('resources/pcn.json'))
-        self.debug = kwargs.get('debug',False)
-        self.debug_level = kwargs.get('debug_level',0)
+        self.pcn_file_path = kwargs.get('pcn_file_path', Path('resources/pcn.json'))
+        self.debug = kwargs.get('debug', False)
+        self.debug_level = kwargs.get('debug_level', 0)
         self.debug_logger = debug_logger(self.debug_level)
         self.environment = environment.lower()
         self.driver_override = kwargs.get('driver_override')
@@ -114,7 +106,7 @@ class PlexDriver(ABC):
         self.download_dir = 'downloads'
         if not os.path.exists(self.download_dir):
             os.mkdir(self.download_dir)
-        self.latest_driver_version_file = os.path.join(self.resource_path,'driver_version.txt')
+        self.latest_driver_version_file = os.path.join(self.resource_path, 'driver_version.txt')
 
 
     def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception: bool=False, element_class=None) -> 'PlexElement':
@@ -143,13 +135,13 @@ class PlexDriver(ABC):
             driver = driver or self.driver
             element_condition = _wait_until.get(type)
             if element_condition:
-                WebDriverWait(driver,timeout).until(element_condition(selector))
+                WebDriverWait(driver, timeout).until(element_condition(selector))
             element_class = element_class or PlexElement
             return element_class(driver.find_element(*selector), self)
 
         except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             if ignore_exception:
-                return
+                return None
             raise
     
     def search_for_element(self, selector, match_value, driver=None, ignore_exception=False):
@@ -164,7 +156,7 @@ class PlexDriver(ABC):
             raise NoSuchElementException('No element could be found with the provided selector and match value.')
         except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             if ignore_exception:
-                return
+                return None
             raise
 
     def wait_for_banner(self) -> None:
@@ -175,24 +167,24 @@ class PlexDriver(ABC):
                 banner_class = banner.get_attribute('class')
                 banner_type = next((BANNER_CLASSES[c] for c in BANNER_CLASSES if c in banner_class), None)
                 if banner_type:
-                    self._banner_handler(banner_type,banner)
+                    self._banner_handler(banner_type, banner)
                     break
                 time.sleep(1)
                 loop += 1
             else:
                 raise UpdateError(f'Unexpected banner type detected. Found {banner_class}. Expected one of {list(BANNER_CLASSES.keys())}')
-        except (TimeoutException,NoSuchElementException,StaleElementReferenceException):
+        except (TimeoutException, NoSuchElementException, StaleElementReferenceException):
             raise UpdateError('No banner detected.')
 
 
-    def _banner_handler(self,banner_type,banner):
+    def _banner_handler(self, banner_type, banner):
         if banner_type == BANNER_SUCCESS:
-            return 
+            return
         else:
             banner_text = banner.get_property('textContent')
             raise UpdateError(banner_text)
 
-    def wait_for_gears(self,selector,loading_timeout=10):
+    def wait_for_gears(self, selector, loading_timeout=10):
         """
         Wait for the spinning gears image to appear and wait for it to dissappear.
 
@@ -209,10 +201,10 @@ class PlexDriver(ABC):
                 Use this if the screen usually takes a long time to load/search.
         """
         gears_visible = False
-        gears_visible = self.wait_for_element(selector,type=VISIBLE,timeout=1,ignore_exception=True)
+        gears_visible = self.wait_for_element(selector, type=VISIBLE, timeout=1, ignore_exception=True)
         timeout = loading_timeout if gears_visible else 1
         self.debug_logger.debug(f'Timeout for invisible is {timeout}.')
-        self.wait_for_element(selector,type=INVISIBLE,timeout=timeout,ignore_exception=True)
+        self.wait_for_element(selector, type=INVISIBLE, timeout=timeout, ignore_exception=True)
 
     def login(self, username, password, company_code, pcn, test_db=True, headless=False):
         """
@@ -232,7 +224,7 @@ class PlexDriver(ABC):
         returns
 
             : driver - WebDriver for main operations
-            : url_comb - combined URL part for the environment (UX,Classic)
+            : url_comb - combined URL part for the environment (UX, Classic)
             : token - Session token from URL
         """
         # self._chrome_check()
@@ -240,7 +232,7 @@ class PlexDriver(ABC):
         self.batch_folder = create_batch_folder(test=self.test_db)
         self.pcn = pcn
         self.headless = headless
-        if hasattr(self,'pcn_dict'):
+        if hasattr(self, 'pcn_dict'):
             self.pcn_name = self.pcn_dict[self.pcn]
         else:
             self.pcn_name = self.pcn
@@ -250,17 +242,17 @@ class PlexDriver(ABC):
         self.driver.get(f'https://{db}{self.plex_main}{self.sso}')
         # Test for new login screen
         try:
-            self.wait_for_element((By.XPATH,'//img[@alt="Rockwell Automation"]'),timeout=4)
+            self.wait_for_element((By.XPATH, '//img[@alt="Rockwell Automation"]'), timeout=4)
             self.debug_logger.debug(f'New Rockwell IAM login screen detected.')
             rockwell = True
-        except (NoSuchElementException,TimeoutException):
-            self.wait_for_element((By.XPATH,'//img[@alt="Plex"]'))
+        except (NoSuchElementException, TimeoutException):
+            self.wait_for_element((By.XPATH, '//img[@alt="Plex"]'))
             rockwell = False
         if rockwell:
-            id_box = self.wait_for_element((By.NAME, self.plex_log_id),type=CLICKABLE)
+            id_box = self.wait_for_element((By.NAME, self.plex_log_id), type=CLICKABLE)
             id_box.send_keys(username)
             id_box.send_keys(Keys.TAB)
-            company_box = self.wait_for_element((By.NAME, self.plex_log_comp),type=CLICKABLE)
+            company_box = self.wait_for_element((By.NAME, self.plex_log_comp), type=CLICKABLE)
             company_text = company_box.get_attribute('value')
             if company_text != company_code:
                 self.debug_logger.info(f'Auto-populated company code: {company_text} does not match provided login credentials: {company_code}.')
@@ -268,7 +260,7 @@ class PlexDriver(ABC):
                 company_box.clear()
                 company_box.send_keys(company_code)
                 company_box.send_keys(Keys.TAB)
-            pass_box = self.wait_for_element((By.NAME, self.plex_log_pass),type=CLICKABLE)
+            pass_box = self.wait_for_element((By.NAME, self.plex_log_pass), type=CLICKABLE)
             pass_box.send_keys(password)
         else:
             self.debug_logger.debug(f'Plex IAM login screen detected.')
@@ -280,11 +272,11 @@ class PlexDriver(ABC):
             id_box.send_keys(username)
             id_box.send_keys(Keys.TAB)
             pass_box.send_keys(password)
-        login_button = self.wait_for_element((By.ID, self.plex_login),type=CLICKABLE)
+        login_button = self.wait_for_element((By.ID, self.plex_login), type=CLICKABLE)
         login_button.click()
         self.first_login = True
 
-    def _driver_setup(self,type):
+    def _driver_setup(self, type):
         if type == 'edge':
             self._edge_check()
             self._download_edge_driver(self.full_browser_version)  # Adjust this to download the correct Edge driver
@@ -297,7 +289,7 @@ class PlexDriver(ABC):
 
     def _read_driver_version(self):
         if os.path.exists(self.latest_driver_version_file):
-            with open(self.latest_driver_version_file,'r') as f:
+            with open(self.latest_driver_version_file, 'r') as f:
                 self.latest_downloaded_driver_version = f.read()
                 self.debug_logger.debug(f'Latest downloaded chromedriver version: {self.latest_downloaded_driver_version}')
         else:
@@ -305,9 +297,9 @@ class PlexDriver(ABC):
             self.latest_downloaded_driver_version = None
 
 
-    def _save_driver_version(self,version):
+    def _save_driver_version(self, version):
         self.debug_logger.debug(f'Saving latest downloaded driver version: {version}')
-        with open(self.latest_driver_version_file,'w+') as f:
+        with open(self.latest_driver_version_file, 'w+') as f:
             f.write(version)
 
 
@@ -326,7 +318,7 @@ class PlexDriver(ABC):
             url = 'https://msedgedriver.azureedge.net/LATEST_STABLE'
 
             urllib.request.urlretrieve(url, text_path)
-            with open(text_path, 'r',encoding='utf-16') as f:
+            with open(text_path, 'r', encoding='utf-16') as f:
                 latest_edgedriver_version = f.read().strip()
             self.full_browser_version = latest_edgedriver_version
         edgedriver_url = f'https://msedgedriver.azureedge.net/{self.full_browser_version}/edgedriver_win64.zip'
@@ -343,15 +335,15 @@ class PlexDriver(ABC):
             self.debug_logger.debug(f'Extracting EdgeDriver to: {self.resource_path}')
             zip_ref.extractall(self.resource_path)
             
-    def _download_chrome_driver(self,version=None):
+    def _download_chrome_driver(self, version=None):
         '''
         Downloads the chromedriver that will allow selenium to function.
         '''
-        text_path =os.path.join(self.resource_path,'chromedriver.txt')
-        zip_path =os.path.join(self.resource_path,'chromedriver.zip')
+        text_path =os.path.join(self.resource_path, 'chromedriver.txt')
+        zip_path =os.path.join(self.resource_path, 'chromedriver.zip')
         chromedriver_url = None
         url = 'https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone-with-downloads.json'
-        urllib.request.urlretrieve(url,text_path)
+        urllib.request.urlretrieve(url, text_path)
         with open(text_path, 'r') as f:
             chrome_releases = json.load(f)
         latest_chromedriver_version = chrome_releases['milestones'][self.browser_version]['downloads']['chromedriver']#['platform']
@@ -421,19 +413,19 @@ class PlexDriver(ABC):
     
 
     def _chrome_setup(self):
-        executable_path = os.path.join(self.resource_path,'chromedriver-win64','chromedriver.exe')
+        executable_path = os.path.join(self.resource_path, 'chromedriver-win64', 'chromedriver.exe')
         os.environ['webdriver.chrome.driver'] = executable_path
         chrome_options = Options()
         chrome_options.add_argument("--log-level=3")
         if self.headless:
             self.debug_logger.debug(f'Running chrome in headless mode.')
             chrome_options.add_argument("--headless")
-        chrome_options.add_experimental_option("prefs",{
+        chrome_options.add_experimental_option("prefs", {
             "download.default_directory": f"{self.download_dir}",
             "download.prompt_for_download": False,
             })
         service = Service(executable_path=executable_path)
-        return webdriver.Chrome(service=service,options=chrome_options)
+        return webdriver.Chrome(service=service, options=chrome_options)
 
     def _classic_popup_handle(self):
         main_window_handle = None
@@ -457,17 +449,17 @@ class PlexDriver(ABC):
                     time.sleep(1)
                     self.debug_logger.debug(f'Login attempt: {login_attempt}')
         if not signin_window_handle:
-            raise LoginError('Failed to find Plex signon window. Please validate login credentials and try again.',environment = self.environment, db= self.db,pcn= self.pcn_name, message='Failed to find Plex signon window. Please validate login credentials and try again.')
+            raise LoginError('Failed to find Plex signon window. Please validate login credentials and try again.', environment = self.environment, db= self.db, pcn= self.pcn_name, message='Failed to find Plex signon window. Please validate login credentials and try again.')
         self.driver.switch_to.window(signin_window_handle)
 
 
-    def _classic_pcn_switch(self,pcn=None):
+    def _classic_pcn_switch(self, pcn=None):
         if not pcn:
             pcn = self.pcn
         _pcn_name = self.pcn_dict[pcn]
         _url = self.driver.current_url
         if self.single_pcn:
-            warn(f'This account only has access to one PCN.',loglevel=2)
+            warn(f'This account only has access to one PCN.', loglevel=2)
             return
         if not 'MENUCUSTOMER.ASPX' in _url.upper() and self.first_login:
             self.debug_logger.debug(f'Single PCN account detected.')
@@ -560,7 +552,7 @@ class PlexElement(WebElement):
         if not hasattr(self, 'screenshot_folder'):
             self.screenshot_folder = os.path.join(self.batch_folder, 'screenshots')
             os.makedirs(self.screenshot_folder, exist_ok=True)
-        filename = os.path.join(self.screenshot_folder,f"{session}_{element_id}_{name}_screenshot.png")
+        filename = os.path.join(self.screenshot_folder, f"{session}_{element_id}_{name}_screenshot.png")
         super().screenshot(filename)
 
     
@@ -595,7 +587,7 @@ class PlexElement(WebElement):
             return
         text = self.get_property('value')
         if not text == text_content:
-            text_content = text_content.replace('\t',' ') # The input will break if sending tab characters. This should only happen when a copy/paste from word/excel was done on the original field text.
+            text_content = text_content.replace('\t', ' ') # The input will break if sending tab characters. This should only happen when a copy/paste from word/excel was done on the original field text.
             self.debug_logger.info(f'{self.get_property("name")} - Current text: {text}. Replacing with provided text: {text_content}')
             self.clear()
             self.send_keys(text_content)

@@ -2,7 +2,7 @@
 from typing import Literal
 import os
 import json
-
+from warnings import warn
 from requests.auth import HTTPBasicAuth
 from api.common import (
     DataSourceInput,
@@ -13,25 +13,31 @@ from api.common import (
     BACKOFF,
     RETRY_STATUSES
     )
+from common.exceptions import(
+    PlexResponseError,
+    UXResponseError,
+    UXResponseErrorLog
+)
 import requests
 from urllib3.util.retry import Retry
 
-class uxDataSourceInput(DataSourceInput):
+class UXDataSourceInput(DataSourceInput):
     def __init__(self, data_source_key: str, *args, template_folder: str=None, **kwargs):
         super().__init__(data_source_key, type='ux', *args, **kwargs)
         self.__input_types__ = {}
         self.__template_folder__ = template_folder
         if self.__template_folder__:
             template_query = self._query_template_import()
-            for key, value in template_query.items():
-                setattr(self, key, value)
+            if template_query:
+                for key, value in template_query.items():
+                    setattr(self, key, value)
         self._type_create()
 
 
     def _query_template_import(self):
         for file in os.listdir(self.__template_folder__):
             if f'{self.__api_id__}.json' == file:
-                with open(os.path.join(self.__template_folder__,file), 'r',encoding='utf-8') as j:
+                with open(os.path.join(self.__template_folder__, file), 'r', encoding='utf-8') as j:
                     template = json.loads(j.read())
                 if 'inputs' in template.keys():
                     return template['inputs']
@@ -39,11 +45,11 @@ class uxDataSourceInput(DataSourceInput):
 
 
     def _update_input_parameters(self):
-        self._query_string = {k:v for k,v in vars(self).items() if not k.startswith('_')}
+        self._query_string = {k:v for k, v in vars(self).items() if not k.startswith('_')}
 
 
     def _type_create(self):
-        for k,v in vars(self).items():
+        for k, v in vars(self).items():
             if not v or k.startswith('_'):
                 continue
             value_type = type(v)
@@ -53,32 +59,32 @@ class uxDataSourceInput(DataSourceInput):
                 self.__input_types__[k] = value_type
 
 
-    def _xstr(self,s):
+    def _xstr(self, s):
         return str(s or '')
 
 
-    def _xbool(self,b):
+    def _xbool(self, b):
         return b.strip().upper() != 'FALSE'
 
 
     def type_reconcile(self):
-        for k,v in vars(self).items():
+        for k, v in vars(self).items():
             if k.startswith('_') or not v or k not in self.__input_types__:
                 continue
-            target_type = getattr(self,'__input_types__')[k]
+            target_type = getattr(self, '__input_types__')[k]
             if target_type is int:
-                new_val = None if isinstance(v,str) and not v.strip() else target_type(v)
+                new_val = None if isinstance(v, str) and not v.strip() else target_type(v)
             elif target_type is str:
                 new_val = self.xstr(v)
             elif target_type is bool:
                 new_val = self.xbool(v)
             else:
                 new_val = target_type(v)
-            setattr(self,k,new_val)
+            setattr(self, k, new_val)
 
 
     def get_to_update(self, get_instance):
-        for k,v in vars(get_instance).items():
+        for k, v in vars(get_instance).items():
             setattr(self, k, v)
         for k in self.__input_types__.keys():
             if k not in vars(get_instance):
@@ -86,7 +92,7 @@ class uxDataSourceInput(DataSourceInput):
         self.type_reconcile()
 
 
-class uxDataSource(DataSource):
+class UXDataSource(DataSource):
     def __init__(self, *args, 
                  auth: HTTPBasicAuth | str = None, 
                  test_db: bool = True, 
@@ -106,7 +112,7 @@ class uxDataSource(DataSource):
         """
         super().__init__(*args, auth=auth, test_db=test_db, pcn_config_file=pcn_config_file, type='ux', **kwargs)
 
-    def call_data_source(self, query:uxDataSourceInput):
+    def call_data_source(self, query:UXDataSourceInput):
         if self._test_db:
             db = 'test.'
         else:
@@ -118,10 +124,20 @@ class uxDataSource(DataSource):
         session.mount('https://', adapter)
         response = session.post(url, json=query._query_string, auth=self._auth)
         json_data = response.json()
-        return json_data
+        return UXDataSourceResponse(query.__api_id__, **json_data)
 
-class uxDataSourceResponse(DataSourceResponse):
+class UXDataSourceResponse(DataSourceResponse):
     def __init__(self, data_source_key, **kwargs):
         super().__init__(data_source_key, **kwargs)
+        if isinstance(getattr(self, 'outputs', None), dict):
+            for k, v in self.outputs.items():
+                setattr(self, k, v)
+        if getattr(self, 'rowLimitExceeded', False):
+            warn('Row limit was exceeded in response. Review input filters and adjust to limit returned data.', category=UserWarning, stacklevel=3)
+        if getattr(self, 'errors', []):
+            raise UXResponseErrorLog(self.errors)
+        self._format_response()
 
-    def _format_response(self):...
+    def _format_response(self):
+        self._transformed_data = getattr(self, 'rows', [])
+        return self._transformed_data

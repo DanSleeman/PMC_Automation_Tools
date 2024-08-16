@@ -1,4 +1,4 @@
-from api.common import DataSourceInput,DataSourceResponse,DataSource
+from api.common import DataSourceInput, DataSourceResponse, DataSource
 from common.exceptions import ClassicConnectionError
 
 import requests
@@ -12,14 +12,14 @@ from zeep.helpers import serialize_object
 SOAP_TEST = 'https://testapi.plexonline.com/Datasource/service.asmx'
 SOAP_PROD = 'https://api.plexonline.com/Datasource/service.asmx'
 class ClassicDataSourceInput(DataSourceInput):
-    def __init__(self,data_source_key: int, *args, delimeter='|',**kwargs):
+    def __init__(self, data_source_key: int, *args, delimeter='|', **kwargs):
         self._delimeter = delimeter
         super().__init__(data_source_key, *args, type='classic', **kwargs)
         self.__api_id__ = int(self.__api_id__)
 
     def _update_input_parameters(self):
-        self._parameter_names = self._delimeter.join([k for k,v in vars(self).items() if not k.startswith('_')])
-        self._parameter_values = self._delimeter.join([v for k,v in vars(self).items() if not k.startswith('_')])
+        self._parameter_names = self._delimeter.join([k for k, v in vars(self).items() if not k.startswith('_')])
+        self._parameter_values = self._delimeter.join([v for k, v in vars(self).items() if not k.startswith('_')])
 
 
 class ClassicDataSource(DataSource):
@@ -60,7 +60,7 @@ class ClassicDataSource(DataSource):
 
 
 class ClassicDataSourceResponse(DataSourceResponse):
-    def __init__(self,data_source_key, **kwargs):
+    def __init__(self, data_source_key, **kwargs):
         super().__init__(data_source_key, **kwargs)
         if self.Error:
             raise ClassicConnectionError(self.Message,
@@ -77,7 +77,7 @@ class ClassicDataSourceResponse(DataSourceResponse):
     
     def _format_response(self):
         self._transformed_data = []
-        if hasattr(self,'_result_set'):
+        if hasattr(self, '_result_set'):
             for row in self._result_set:
                 row_data = {}
                 columns = row['Columns']['Column']

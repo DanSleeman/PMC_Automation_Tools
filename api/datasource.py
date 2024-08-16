@@ -25,7 +25,7 @@ class ApiDataSourceInput(DataSourceInput):
 
 
     def _update_input_parameters(self):
-        self._query_string = {k:v for k,v in vars(self).items() if not k.startswith('_')}
+        self._query_string = {k:v for k, v in vars(self).items() if not k.startswith('_')}
 
 
 class ApiDataSource(DataSource):
@@ -65,7 +65,7 @@ class ApiDataSource(DataSource):
                 'X-Plex-Connect-Customer-Id': p
             }
             session = requests.Session()
-            retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES,raise_on_status=True)
+            retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
             adapter = CustomSslContextHTTPAdapter(max_retries=retry)
             session.mount('https://', adapter)
             request_params = {'json': query._query_string} if query._method.upper() in ['POST', 'PUT'] else {'params': query._query_string}
@@ -73,7 +73,7 @@ class ApiDataSource(DataSource):
             try:
                 response.raise_for_status()
             except HTTPError as e:
-                raise ApiError('Error calling API.',**response.json(),status=response.status_code)
+                raise ApiError('Error calling API.', **response.json(), status=response.status_code)
             # TODO - Check how the various response schema should be handled
             if response.status_code == 200 and response.text !=[]:
                 response_list.append(response.json())

@@ -8,12 +8,12 @@ Plex has a bug with their PROD server where it does not support TLS 1.3.
 The TEST server does support this.  
 I've added this class to include the legacy server connect option when using OpenSSL 3+
 
-# uxResponse class
+# UXResponse class
 
 Stores the response as an object with each key:value pair as an attribute.  
 additional attributes of `_request_body_`, `_status_code_`, and `_transaction_no_` are added for tracking and debugging purposes.
 
-# uxDataSourceInput class
+# UXDataSourceInput class
 
 Used for more cleanly managing data source testing and usage.  
 This allows for default attributes to be kept for all inputs.  
@@ -29,7 +29,7 @@ Default is 1.
 - Format 2: request body must only have `{'key':'value'}` format
     - Will return a body with a list of dictionaries for each row in `{'header':'value'}` format
 
-Each format supports returning data as a pandas dataframe, `uxResponse` class list, or direct JSON string.
+Each format supports returning data as a pandas dataframe, `UXResponse` class list, or direct JSON string.
 
 # PlexApi class
 
@@ -62,7 +62,7 @@ ds_dict = {
 
 api_id = '6079'
 
-class_instance = uxDataSourceInput(api_id, call_format=2, **dict(ds_dict[api_id]))
+class_instance = UXDataSourceInput(api_id, call_format=2, **dict(ds_dict[api_id]))
 class_instance.Add_By = 209144
 class_instance.Admin = 1
 class_instance.Member = 1
@@ -76,7 +76,7 @@ Called on class initialization.
 
 ## get_to_update()
 
-Takes the output from a `uxResponse` and adds the attributes to a `uxDataSourceInput`. 
+Takes the output from a `UXResponse` and adds the attributes to a `UXDataSourceInput`. 
 
 
 ## type_reconcile()
@@ -104,7 +104,7 @@ query = [
 # call the web service with ID 123456 in the test database without creating a dataframe.
 ux.call_web_service(123456, query, db='TEST', dataframe=False)
 ```
-You can also use the previous example using the `uxDataSourceInput` class as the query.
+You can also use the previous example using the `UXDataSourceInput` class as the query.
 ```python
 ux.call_web_service(123456, class_instance, db='TEST', dataframe=False)
 ```
@@ -157,7 +157,7 @@ Calls a plex web service to return the values.
 Parameters:
 - api_id: the UX data source ID
 - query: The query parameter. It can be one of the following types evaluated in this order:
-    - An instance of `uxDataSourceInput`
+    - An instance of `UXDataSourceInput`
     - A dictionary (dict)
     - A list of tuples (list[tuple])
     - A tuple of tuples (tuple[tuple])
@@ -165,11 +165,11 @@ Parameters:
 - pcn: the PCN to which to connect
 - db: the plex database connection to use
 - dataframe: whether to return a dataframe object. Supercedes `classlist`
-- classlist: whether to return a list of `uxResponse` classes.
+- classlist: whether to return a list of `UXResponse` classes.
 
 Returns:
 - if dataframe is true, a pandas dataframe.
-- if classlist is true, a list of `uxResponse` classes.
+- if classlist is true, a list of `UXResponse` classes.
 - else a json reponse string from the web service.
 
 examples for the query:
@@ -289,18 +289,18 @@ When calling a UX data source, save a json file based on the sample call from th
 When initializing your data source input object, pass in the template file path.
 
 ```python
-u = uxDataSourceInput(10941,template_folder='ds_templates')
+u = UXDataSourceInput(10941,template_folder='ds_templates')
 u.pop_inputs(keep=[]) # Removes the default values from the template file
 ```
 
-Using this method, the `uxDataSourceInput` object will have an attribute which records the expected input types properly.
+Using this method, the `UXDataSourceInput` object will have an attribute which records the expected input types properly.
 
 This will allow you to use a csv source file for all the inputs without needing to define the types manually.
 
 EX:
 
 ```python
-from ux_data_source_tools import PlexDataSource, uxDataSourceInput
+from ux_data_source_tools import PlexDataSource, UXDataSourceInput
 import csv
 
 in_file = 'csv_file_from_SQL.csv'
@@ -312,7 +312,7 @@ ux = PlexDataSource(pcn,db)
 with open(in_file,'r',encoding='utf-8-sig') as f: 
     c = csv.DictReader(f)
     for r in c:
-        u = uxDataSourceInput(ds_id,template_folder='ds_templates',call_format=2)
+        u = UXDataSourceInput(ds_id,template_folder='ds_templates',call_format=2)
         u.pop_inputs(keep=[])
         for k,v in r.items():
             # This will set all the input parameters from the CSV using the column names.
@@ -332,7 +332,7 @@ Example of updating two fields in a tool record without impacting existing value
 csv file contains 3 columns:  
 `Surface_Area, Standard_Tool_Life, Tool_Key`
 ``` python
-from ux_data_source_tools import uxDataSourceInput, PlexDataSource
+from ux_data_source_tools import UXDataSourceInput, PlexDataSource
 import csv
 ux = PlexDataSource()
 input_file = 'tool_list.csv'
@@ -341,13 +341,13 @@ with open(input_file, 'r',encoding='utf-8-sig') as f: #Use utf-8-sig if saving a
     reader = csv.DictReader(f)
     for row in reader:
         api_id = '2006'
-        get_instance = uxDataSourceInput(api_id, template_folder=template_folder)
+        get_instance = UXDataSourceInput(api_id, template_folder=template_folder)
         get_instance.pop_inputs('Supplier_No')
         get_instance.Tool_Key = row['Tool_Key']
         get_instance.type_reconcile()
         resp = ux.call_web_service(api_id, get_instance, classlist=True)
         api_id = '2067'
-        update_instance = uxDataSourceInput(api_id, template_folder=template_folder)
+        update_instance = UXDataSourceInput(api_id, template_folder=template_folder)
         update_instance.get_to_update(resp[0])
         update_instance.Surface_Area = row['Surface_Area']
         update_instance.Standard_Tool_Life = row['Standard_Tool_Life']
@@ -364,7 +364,7 @@ Example of updating a customer ship-to address ship-from default
 This takes a SQL report which uses key values from one PCN and links them to the new PCN for the data source to use.
 
 ```python
-from ux_data_source_tools import UX_Data_Sources, uxDataSourceInput
+from ux_data_source_tools import UX_Data_Sources, UXDataSourceInput
 import csv
 from pathlib import Path
 import json
@@ -387,8 +387,8 @@ with open(infile,'r',encoding='utf-8-sig') as f:
     d = csv.DictReader(f)
     for row in d:
         try:
-            # Initialize a uxDataSourceInput object
-            c = uxDataSourceInput(api_id)
+            # Initialize a UXDataSourceInput object
+            c = UXDataSourceInput(api_id)
             # 18599
             """
             Unique key value for record updates

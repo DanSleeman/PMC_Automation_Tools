@@ -29,7 +29,7 @@ Base response class
 
 
 """
-TYPE_VALUES = ['classic','ux','api']
+TYPE_VALUES = ['classic', 'ux', 'api']
 RETRY_COUNT = 10
 BACKOFF = 0.5
 RETRY_STATUSES = [500, 502, 503, 504]
@@ -46,7 +46,7 @@ class CustomSslContextHTTPAdapter(HTTPAdapter):
 class DataSourceInput(ABC):
     """
     """
-    def __init__(self, api_id: str, type: Literal['classic','ux','api'], *args, **kwargs):
+    def __init__(self, api_id: str, type: Literal['classic', 'ux', 'api'], *args, **kwargs):
         self.__api_id__ = str(api_id)
         self.__refresh_query__ = True
 
@@ -69,11 +69,6 @@ class DataSourceInput(ABC):
 
     @abstractmethod
     def _update_input_parameters(self):...
-        # if self.__datasource_type__ == 'classic':
-        #     self._parameter_names = self._delimeter.join([k for k,v in vars(self).items() if not k.startswith('_')])
-        #     self._parameter_values = self._delimeter.join([v for k,v in vars(self).items() if not k.startswith('_')])
-        # else:
-        #     self._query_string = {k:v for k,v in vars(self).items() if not k.startswith('_')}
 
 
     def pop_inputs(self, *args, **kwargs):
@@ -112,7 +107,7 @@ class DataSource(ABC):
     def __init__(self, auth: HTTPBasicAuth|str=None,
                        test_db: bool = True,
                        pcn_config_file: str='resources/pcn_config.json',
-                       type: Literal['classic','ux','api']='ux',
+                       type: Literal['classic', 'ux', 'api']='ux',
                        **kwargs):
         """
         Parameters:
@@ -128,13 +123,10 @@ class DataSource(ABC):
         - pcn_config_file: str, optional
             - Path to JSON file containing username/password credentials for HTTPBasicAuth connections.
         """
-        self._auth = kwargs.get('pcn',auth)
+        self._auth = self.set_auth(kwargs.get('pcn', auth))
         self._test_db = test_db
         self._pcn_config_file = pcn_config_file
         self.__datasource_type__ = type
-        if not self._auth or type(self._auth) == HTTPBasicAuth:
-            return
-        self.set_auth(self._auth)
 
 
     def _check_api_key(self, input_str: str) -> bool:
@@ -163,9 +155,8 @@ class DataSource(ABC):
                     }
                 }
         """
-        if type(key) == HTTPBasicAuth or self._check_api_key(key):
-            self._auth = key
-            return
+        if isinstance(key, HTTPBasicAuth) or self._check_api_key(key) or key is None:
+            return key
         if not os.path.exists(self._pcn_config_file):
             print(f'PCN config file "{self._pcn_config_file}" missing. Create one or enter your credentials now.')
             username = input('Webservice username:')
@@ -175,7 +166,7 @@ class DataSource(ABC):
                 self.launch_pcn_dict = json.load(c)
             username = self.launch_pcn_dict[key]['api_user']
             password = self.launch_pcn_dict[key]['api_pass']
-        self._auth = HTTPBasicAuth(username, password)
+        return HTTPBasicAuth(username, password)
     
     @abstractmethod
     def call_data_source(self):...
@@ -194,17 +185,15 @@ class DataSourceResponse(ABC):
         self.__api_id__ = api_id
         for key, value in kwargs.items():
             setattr(self, key, value)
-        # self.__dict__.update(kwargs)
-        if hasattr(self,'outputs') and type(getattr(self,'outputs')) is dict:
-            self.__dict__.update(**self.outputs)
+
 
     @abstractmethod
     def _format_response(self):...
 
-    def save_response_csv(self, out_file):
-        if not hasattr(self,'_transformed_data'):
+    def save_csv(self, out_file):
+        if not getattr(self, '_transformed_data', []):
             raise PlexResponseError(f'{type(self).__name__} has no transformed data to save.')
-        with open(out_file,'w+', encoding='utf-8') as f:
-            c = csv.DictWriter(f,fieldnames=self._transformed_data[0].keys(),lineterminator='\n')
+        with open(out_file, 'w+', encoding='utf-8') as f:
+            c = csv.DictWriter(f, fieldnames=self._transformed_data[0].keys(), lineterminator='\n')
             c.writeheader()
             c.writerows(self._transformed_data)

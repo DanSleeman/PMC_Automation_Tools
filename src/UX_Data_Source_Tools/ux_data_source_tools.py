@@ -22,12 +22,12 @@ __credits__ = ['Dan Sleeman']
 __license__ = 'GPL-3'
 __version__ = '1.7.4'
 __maintainer__ = 'Dan Sleeman'
-__email__ = ['sleemand@shapecorp.com','dansleeman@gmail.com']
+__email__ = ['sleemand@shapecorp.com', 'dansleeman@gmail.com']
 __status__ = 'Production'
 
-ATTR_EXCLUDE = ["__api_id__", "__query_string__", "__refresh_query__","__call_format__","_request_body_","_status_code_","_transaction_no_","__input_types__","url","apikey","method","__template_folder__"]
+ATTR_EXCLUDE = ["__api_id__", "__query_string__", "__refresh_query__", "__call_format__", "_request_body_", "_status_code_", "_transaction_no_", "__input_types__", "url", "apikey", "method", "__template_folder__"]
 CALL_FORMATS = [1, 2]
-DB_VALUES = ['TEST','PROD']
+DB_VALUES = ['TEST', 'PROD']
 RETRY_COUNT = 10
 BACKOFF = 0.5
 RETRY_STATUSES = [500, 502, 503, 504]
@@ -36,11 +36,11 @@ SOAP_PROD = 'https://api.plexonline.com/Datasource/service.asmx'
 class Error(Exception):
     pass
 class DataSourceException(Error):
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args)
         self.__dict__.update(kwargs)
 class ApiError(DataSourceException):
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args)
         self.status = kwargs.get('status')
         self.__dict__.update(kwargs)
@@ -53,18 +53,18 @@ class CustomSslContextHTTPAdapter(HTTPAdapter):
         ctx.options |= 0x4  # ssl.OP_LEGACY_SERVER_CONNECT
         self.poolmanager = urllib3.PoolManager(ssl_context=ctx)
 
-class uxResponse():
+class UXResponse():
     def __init__(self, api_id, **kwargs):
         self.__api_id__ = api_id
         self.__dict__.update(kwargs)
-        if hasattr(self,'outputs'):
+        if hasattr(self, 'outputs'):
             self.__dict__.update(**self.outputs)
 
 class plexDateOffset():
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
-class uxDataSourceInput():
+class UXDataSourceInput():
     """
     Class used for calling UX web services.
 
@@ -81,17 +81,17 @@ class uxDataSourceInput():
         The templates expect 99999 as the int placeholder and 0/1 as the boolean placehold.
     
     Incorrect:
-    >>> c = uxDataSourceInput(123,Quantity=1)
+    >>> c = UXDataSourceInput(123, Quantity=1)
     >>> c.Quantity
     >>> True
 
     Correct:
-    >>> c = uxDataSourceInput(123)
+    >>> c = UXDataSourceInput(123)
     >>> c.Quantity = 1
     >>> c.Quantity
     >>> 1
     """
-    def __init__(self, api_id: str, call_format: int=1, template_folder: str=None,**kwargs):
+    def __init__(self, api_id: str, call_format: int=1, template_folder: str=None, **kwargs):
         self.__input_types__ = {}
         self.__api_id__ = str(api_id)
         self.__call_format__ = call_format
@@ -100,8 +100,8 @@ class uxDataSourceInput():
         for x in self.__dict__.keys():
             if x in ATTR_EXCLUDE:
                 continue
-            if len(str(getattr(self,x))) == 1 and type(getattr(self,x)) == int:
-                self.__dict__[x] = bool(getattr(self,x))
+            if len(str(getattr(self, x))) == 1 and type(getattr(self, x)) == int:
+                self.__dict__[x] = bool(getattr(self, x))
         if self.__template_folder__:
             template_query = self.query_template_import()
             if template_query:
@@ -119,7 +119,7 @@ class uxDataSourceInput():
     def query_template_import(self):
         for file in os.listdir(self.__template_folder__):
             if self.__api_id__ in file:
-                with open(os.path.join(self.__template_folder__,file), 'r',encoding='utf-8') as j:
+                with open(os.path.join(self.__template_folder__, file), 'r', encoding='utf-8') as j:
                     x = json.loads(j.read())
                 if 'inputs' in x.keys():
                     return x['inputs']
@@ -159,26 +159,26 @@ class uxDataSourceInput():
 
     def type_create(self):
         for x in self.__dict__.keys():
-            if not getattr(self,x):
+            if not getattr(self, x):
                 continue
             if x in ATTR_EXCLUDE:
                 continue
             else:
                 # print(x)
-                # print(type(getattr(self,x)))
-                if len(str(getattr(self,x))) == 1 and type(getattr(self,x)) == int:
-                    self.__input_types__[x] = type(bool(getattr(self,x)))
+                # print(type(getattr(self, x)))
+                if len(str(getattr(self, x))) == 1 and type(getattr(self, x)) == int:
+                    self.__input_types__[x] = type(bool(getattr(self, x)))
                 else:
-                    self.__input_types__[x] = type(getattr(self,x))
-                # self.__setattr__(x,getattr(self,x))
+                    self.__input_types__[x] = type(getattr(self, x))
+                # self.__setattr__(x, getattr(self, x))
 
 
-    def xstr(self,s):
+    def xstr(self, s):
         if s is None:
             return ''
         return str(s)
     
-    def xbool(self,b):
+    def xbool(self, b):
         if b.upper() == 'FALSE':
             return False
         return True
@@ -192,22 +192,22 @@ class uxDataSourceInput():
             if x not in self.__input_types__.keys():
                 continue
             else:
-                match getattr(self,'__input_types__')[x]:
+                match getattr(self, '__input_types__')[x]:
                     case v if v is int:
-                        if type(getattr(self,x)) == str and len(getattr(self,x).strip()) == 0:
+                        if type(getattr(self, x)) == str and len(getattr(self, x).strip()) == 0:
                             new_val = None
                         else:
-                            new_val = getattr(self,'__input_types__')[x](getattr(self,x))
+                            new_val = getattr(self, '__input_types__')[x](getattr(self, x))
                     case v if v is str:
-                        new_val = self.xstr(getattr(self,x))
+                        new_val = self.xstr(getattr(self, x))
                     case v if v is bool:
-                        new_val = self.xbool(getattr(self,x))
+                        new_val = self.xbool(getattr(self, x))
                     case _:
-                        new_val = getattr(self,'__input_types__')[x](getattr(self,x))
-                self.__setattr__(x,new_val)
+                        new_val = getattr(self, '__input_types__')[x](getattr(self, x))
+                self.__setattr__(x, new_val)
 
 
-    def get_to_update(self,get_instance):
+    def get_to_update(self, get_instance):
         for header in vars(get_instance):
             self.__setattr__(header, getattr(get_instance, header))
         for x in self.__input_types__.keys():
@@ -219,22 +219,22 @@ class uxDataSourceInput():
     def purge_empty(self):
         purge_attrs = []
         for y in vars(self).keys():
-            if getattr(self,y) == None or y not in self.__input_types__.keys():
+            if getattr(self, y) == None or y not in self.__input_types__.keys():
                 purge_attrs.append(y)
         for y in purge_attrs:
             self.pop_inputs(y)
 
 
-class PlexApi(uxDataSourceInput):
+class PlexApi(UXDataSourceInput):
     """
     Class used for calling the Plex Dev Portal APIs.
     REF: https://developers.plex.com/
             
-    :param **kwargs: used the same as uxDataSourceInput with exception for 'json' keyword. Use this for passing a json object directly to the API call.
+    :param **kwargs: used the same as UXDataSourceInput with exception for 'json' keyword. Use this for passing a json object directly to the API call.
             Example: Passing an array which is unnamed in the request body.
                 See: https://connect.plex.com/purchasing/v1/release-batch/create
     """
-    def __init__(self,method,url,apikey,**kwargs):
+    def __init__(self, method, url, apikey, **kwargs):
 
         self.__refresh_query__  = True
         self.method = method
@@ -254,7 +254,7 @@ class PlexApi(uxDataSourceInput):
             self.update_query_string()
 
 
-    def call_api(self,pcn:str|list):
+    def call_api(self, pcn:str|list):
         """
         Returns a list of the json objects as dictionaries from the API response.
         """
@@ -267,7 +267,7 @@ class PlexApi(uxDataSourceInput):
                 'X-Plex-Connect-Customer-Id': p
             }
             session = requests.Session()
-            retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES,raise_on_status=True)
+            retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
             adapter = CustomSslContextHTTPAdapter(max_retries=retry)
             # adapter = HTTPAdapter(max_retries=retry)
             session.mount('https://', adapter)
@@ -278,7 +278,7 @@ class PlexApi(uxDataSourceInput):
             try:
                 response.raise_for_status()
             except HTTPError as e:
-                raise ApiError('Error calling API.',**response.json(),status=response.status_code)
+                raise ApiError('Error calling API.', **response.json(), status=response.status_code)
             if response.status_code == 200 and response.text !=[]:
                 response_list.append(response.json())
             else:
@@ -295,7 +295,7 @@ class PlexDataSource(object):
         self.pcn = pcn
         if '.' in db:
             warn(f"Period detected in db input. {type(self).__name__} is designed to work without this and has removed it.", SyntaxWarning, stacklevel=2)
-            db = db.replace('.','')
+            db = db.replace('.', '')
         if not db.upper() in DB_VALUES:
             raise ValueError(f"{type(self).__name__} db input must be one of {DB_VALUES}. Received '{db}'.")
         self.db = db
@@ -309,7 +309,7 @@ class PlexDataSource(object):
         """
         Creates a basic authentication string for use with Plex data source calls.
         """
-        if not hasattr(self,'pcn_config_file'):
+        if not hasattr(self, 'pcn_config_file'):
             self.pcn_config_file = pcn_config_file
         with open(self.pcn_config_file, 'r', encoding='utf-8') as c:
             self.launch_pcn_dict = json.load(c)
@@ -337,7 +337,7 @@ class PlexDataSource(object):
         """
         today = datetime.today()
         week_start = today - timedelta(days=today.weekday())
-        if isinstance(input_date, (datetime,date)):
+        if isinstance(input_date, (datetime, date)):
             eval_date = input_date
         else:
             try:
@@ -345,7 +345,7 @@ class PlexDataSource(object):
             except ValueError:
                 eval_date = datetime.strptime("1990-01-01T00:00:00Z", 
                                             '%Y-%m-%dT%H:%M:%SZ')
-        year_offset = date(int(eval_date.strftime("%Y")),12,28).isocalendar()[1]
+        year_offset = date(int(eval_date.strftime("%Y")), 12, 28).isocalendar()[1]
         # Anything less than 0 is considered equally past due
         week_index = max(
                     -1,
@@ -382,17 +382,17 @@ class PlexDataSource(object):
             >>> db = 'test.'
             >>> # Create list of queries for the web service calls
             >>> query_list = []
-            >>> for i, (key,item) in enumerate(part_key_dict.items()):
+            >>> for i, (key, item) in enumerate(part_key_dict.items()):
             >>>     query = (
                         ('Part_Key', key),
                         ('From_PRP', True),
                         ('Begin_Date', '2001-10-01T04:00:00.000Z'),
-                        ('End_Date',ed)
+                        ('End_Date', ed)
                     )
             >>>     query_list.append(query)
             >>> with ThreadPoolExecutor(max_workers=100) as executor:
             >>>    url = f'https://{db}cloud.plex.com/api/datasources/{api_id}/execute'
-            >>>    list_of_urls = [(url,{'inputs': dict(query)}, authentication) 
+            >>>    list_of_urls = [(url, {'inputs': dict(query)}, authentication) 
                             for query in query_list]
             >>>    futures = [executor.submit(ux.post_url, url_args) for url_args in list_of_urls]
             >>>    for future in as_completed(futures):
@@ -401,7 +401,7 @@ class PlexDataSource(object):
         """
         # print("Post URL args:", args)
         session = requests.Session()
-        retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES,raise_on_status=True)
+        retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
         adapter = CustomSslContextHTTPAdapter(max_retries=retry)
         session.mount('https://', adapter)
         response = session.post(args[0], json=args[1], auth=args[2])
@@ -418,7 +418,7 @@ class PlexDataSource(object):
             db = ''
         url = f'https://{db}cloud.plex.com/api/datasources/{api_id}/execute{self.url_call_format}'
         session = requests.Session()
-        retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES,raise_on_status=True)
+        retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
         adapter = CustomSslContextHTTPAdapter(max_retries=retry)
         session.mount('https://', adapter)
         self.response = session.post(url, json=query, auth=authentication)
@@ -433,21 +433,21 @@ class PlexDataSource(object):
         return {'inputs': dict(args)}
 
 
-    def data_frame_make(self,json_data):
+    def data_frame_make(self, json_data):
         df = pd.DataFrame()
         if self.__call_format__ == 1:
-            df = json_normalize(json_data['tables'],'rows')
+            df = json_normalize(json_data['tables'], 'rows')
         elif self.__call_format__ == 2:
             df = pd.DataFrame(json_data['rows'])
         if df.empty:
             return pd.DataFrame()
         if self.__call_format__ == 1:
             df.columns = json_data['tables'][0]['columns']
-        df = df.replace('\r\n','',regex=True)
+        df = df.replace('\r\n', '', regex=True)
         return df
 
 
-    def call_web_service(self, api_id: str, query: uxDataSourceInput| dict | list[tuple] | tuple[tuple] | tuple, pcn: str=None, db: str='TEST', dataframe: bool=False, classlist: bool=False):
+    def call_web_service(self, api_id: str, query: UXDataSourceInput| dict | list[tuple] | tuple[tuple] | tuple, pcn: str=None, db: str='TEST', dataframe: bool=False, classlist: bool=False):
         """
         Calls a plex web service to return the values.
 
@@ -457,14 +457,14 @@ class PlexDataSource(object):
                       - A list of tuples (list[tuple])
                       - A dictionary (dict)
                       - A tuple of tuples (tuple[tuple])
-                      - An instance of uxDataSourceInput
+                      - An instance of UXDataSourceInput
             :param pcn: the PCN to which to connect
             :param db: the plex database connection to use
             :param dataframe: return a pandas dataframe
-            :param classlist: return a list of uxDataSourceResponse classes
+            :param classlist: return a list of UXDataSourceResponse classes
         Returns:
             if dataframe is true, a pandas dataframe
-            if classlist is true, a list of uxDataSourceResponse classes
+            if classlist is true, a list of UXDataSourceResponse classes
             else a json reponse string from the web service
         """
         self.api_id = api_id
@@ -477,13 +477,13 @@ class PlexDataSource(object):
         
         elif not hasattr(self, 'authentication'):
             raise AttributeError(f"{type(self).__name__}.authentication attribute not set. Either provide a pcn input, call the {type(self).__name__}.set_auth function, or set the {type(self).__name__}.attribute first.")
-        if hasattr(query,'__call_format__'):
+        if hasattr(query, '__call_format__'):
             self.__call_format__ = query.__call_format__
             self.url_call_format = f'?format={query.__call_format__}'
         else:
             self.__call_format__ = 1
             self.url_call_format = ''
-        if isinstance(self.query, uxDataSourceInput):
+        if isinstance(self.query, UXDataSourceInput):
             json_input = self.query.__query_string__
         elif isinstance(self.query, dict):
             json_input = {'inputs': self.query}
@@ -497,10 +497,10 @@ class PlexDataSource(object):
             json_input = {'inputs': dict([self.query])}
 
         else:
-            raise TypeError("Query input type not supported. Must be a uxDataSourceInput object, a dictionary, or a list/tuple of (key, value) tuples.")
+            raise TypeError("Query input type not supported. Must be a UXDataSourceInput object, a dictionary, or a list/tuple of (key, value) tuples.")
         json_data = self.rest_api_query(self.api_id, json_input, self.db, self.authentication)
         if 'errors' in json_data.keys():
-            raise ApiError('Error calling web service.',**json_data,status=self.response.status_code)
+            raise ApiError('Error calling web service.', **json_data, status=self.response.status_code)
         if dataframe:
             df = self.data_frame_make(json_data)
             return df
@@ -518,7 +518,7 @@ class PlexDataSource(object):
                 jdt = json_data['rows']
                 transaction_no = json_data['transactionNo']
                 result = [row for row in jdt]
-            return [uxResponse(self.api_id, 
+            return [UXResponse(self.api_id, 
                                _transaction_no_ = transaction_no,
                                _request_body_ = self.response.request.body,
                                _status_code_ = self.response.status_code,
@@ -532,14 +532,14 @@ class PlexDataSource(object):
         Takes 'normal' date formats and converts them to a Plex web service 
             format (ISO format)
         Can also take a single datetime object.
-        2022,09,11 -> 2022-09-11T04:00:00Z
-        2022,09,11,18,45 -> 2022-09-11T22:45:00Z
+        2022, 09, 11 -> 2022-09-11T04:00:00Z
+        2022, 09, 11, 18, 45 -> 2022-09-11T22:45:00Z
             Next day if hours fall into 20-24 period
-        2022,09,11,22 -> 2022-09-12T02:00:00Z
+        2022, 09, 11, 22 -> 2022-09-12T02:00:00Z
             date_offset arg will add days to the provided time
             Useful when providing just a datetime object to the function
         """
-        if isinstance(args[0], (datetime,date)):
+        if isinstance(args[0], (datetime, date)):
             x = args[0]
         else:
             x = datetime(*args).astimezone(datetime.now(timezone.utc).tzinfo)
@@ -549,7 +549,7 @@ class PlexDataSource(object):
         return f_date
 
 
-    def list_data_source_access(self,pcn=None, all_acc=0,db='TEST'):
+    def list_data_source_access(self, pcn=None, all_acc=0, db='TEST'):
         """
         Examples
         ---------
@@ -578,7 +578,7 @@ class PlexDataSource(object):
             db = ''
         url = f'https://{db}cloud.plex.com/api/datasources/search?name='
         session = requests.Session()
-        retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES,raise_on_status=True)
+        retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
         adapter = CustomSslContextHTTPAdapter(max_retries=retry)
         # adapter = HTTPAdapter(max_retries=retry)
         session.mount('https://', adapter)
@@ -601,7 +601,7 @@ class PlexDataSource(object):
                     df_2 = json_normalize(json_data)
                     # df_2.assign(PCN=key)
                     df_2['PCN'] = key
-                    df = pd.concat([df,df_2])
+                    df = pd.concat([df, df_2])
         else:
             if pcn:
                 authentication = self.set_auth(pcn)
@@ -612,9 +612,9 @@ class PlexDataSource(object):
             df = pd.DataFrame()
             df = json_normalize(json_data)
         if self.all_acc:
-            df = df[['id','name','PCN']]
+            df = df[['id', 'name', 'PCN']]
         else:
-            df = df[['id','name']]
+            df = df[['id', 'name']]
         return df
 
         
@@ -633,8 +633,8 @@ class PlexDataSource(object):
             return cd
 
 
-class ClassicDataSourceInput(uxDataSourceInput):
-    def __init__(self,data_source_key: int, delimeter='|',**kwargs):
+class ClassicDataSourceInput(UXDataSourceInput):
+    def __init__(self, data_source_key: int, delimeter='|', **kwargs):
         self.__data_source_key__ = int(data_source_key)
         self.__dict__.update(kwargs)
         self._delimeter = delimeter
@@ -646,15 +646,15 @@ class ClassicDataSourceInput(uxDataSourceInput):
             self._update_params()
     
     def _update_params(self):
-        self._parameter_names = self._delimeter.join([k for k,v in vars(self).items() if not k.startswith('_')])
-        self._parameter_values = self._delimeter.join([v for k,v in vars(self).items() if not k.startswith('_')])
+        self._parameter_names = self._delimeter.join([k for k, v in vars(self).items() if not k.startswith('_')])
+        self._parameter_values = self._delimeter.join([v for k, v in vars(self).items() if not k.startswith('_')])
     def update_query_string(self):
         return self._update_params()
 
 
 class PlexClassicDataSource(PlexDataSource):
-    def __init__(self,wsdl,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, wsdl, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._wsdl = wsdl
     
 
@@ -671,7 +671,7 @@ class PlexClassicDataSource(PlexDataSource):
 
 
 class ClassicResponse():
-    def __init__(self,data_source_key, **kwargs):
+    def __init__(self, data_source_key, **kwargs):
         self.__data_source_key__ = data_source_key
         self.__dict__.update(kwargs)
         if self.Error:
@@ -689,7 +689,7 @@ class ClassicResponse():
     
     def _format_response(self):
         self._transformed_data = []
-        if hasattr(self,'_result_set'):
+        if hasattr(self, '_result_set'):
             for row in self._result_set:
                 row_data = {}
                 columns = row['Columns']['Column']
@@ -702,10 +702,10 @@ class ClassicResponse():
     
 
     def save_response_csv(self, out_file):
-        if not hasattr(self,'_transformed_data'):
+        if not hasattr(self, '_transformed_data'):
             return
-        with open(out_file,'w+', encoding='utf-8') as f:
-            c = csv.DictWriter(f,fieldnames=self._transformed_data[0].keys(),lineterminator='\n')
+        with open(out_file, 'w+', encoding='utf-8') as f:
+            c = csv.DictWriter(f, fieldnames=self._transformed_data[0].keys(), lineterminator='\n')
             c.writeheader()
             c.writerows(self._transformed_data)
 

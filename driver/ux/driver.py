@@ -8,12 +8,14 @@ from driver.common import (
     EXISTS,
     SIGNON_URL_PARTS
     )
-from selenium.common.exceptions import TimeoutException,StaleElementReferenceException,NoSuchElementException
+from selenium.common.exceptions import (
+    TimeoutException,
+    StaleElementReferenceException,
+    NoSuchElementException
+    )
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-
-from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
 from common.exceptions import (
     UpdateError,
     NoRecordError,
@@ -30,11 +32,11 @@ BANNER_CLASSES = {
     'plex-banner-warning': BANNER_ERROR
 }
 BANNER_SELECTOR = (By.CLASS_NAME, 'plex-banner')
-PLEX_GEARS_SELECTOR = (By.XPATH,'//i[@class="plex-waiting-spinner"]')
+PLEX_GEARS_SELECTOR = (By.XPATH, '//i[@class="plex-waiting-spinner"]')
 UX_INVALID_PCN_MESSAGE = '__MESSAGE=YOU+WERE+REDIRECTED+TO+YOUR+LANDING+COMPANY'
 
 
-class uxDriver(PlexDriver):
+class UXDriver(PlexDriver):
     """
     UX Unique requirements
     no pcn_file required
@@ -48,12 +50,12 @@ class uxDriver(PlexDriver):
     login uniqueness
 
     """
-    def __init__(self, driver_type: Literal['edge','chrome'], *args, **kwargs):
+    def __init__(self, driver_type: Literal['edge', 'chrome'], *args, **kwargs):
         super().__init__(environment='ux', *args, driver_type=driver_type, **kwargs)
-        for k,v in kwargs.items():
-            setattr(self,k,v)
-    def wait_for_element(self,selector, driver=None, timeout=15,type=VISIBLE,ignore_exception=False):
-        return super().wait_for_element(selector, driver=driver, timeout=timeout,type=type,ignore_exception=ignore_exception,element_class=uxPlexElement)
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+    def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception=False):
+        return super().wait_for_element(selector, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=UXPlexElement)
     def wait_for_banner(self) -> None:
         try:
             loop = 0
@@ -62,17 +64,17 @@ class uxDriver(PlexDriver):
                 banner_class = banner.get_attribute('class')
                 banner_type = next((BANNER_CLASSES[c] for c in BANNER_CLASSES if c in banner_class), None)
                 if banner_type:
-                    self._banner_handler(banner_type,banner)
+                    self._banner_handler(banner_type, banner)
                     break
                 time.sleep(1)
                 loop += 1
             else:
                 raise UpdateError(f'Unexpected banner type detected. Found {banner_class}. Expected one of {list(BANNER_CLASSES.keys())}')
-        except (TimeoutException,NoSuchElementException,StaleElementReferenceException):
+        except (TimeoutException, NoSuchElementException, StaleElementReferenceException):
             raise UpdateError('No banner detected.')
 
 
-    def _banner_handler(self,banner_type,banner):
+    def _banner_handler(self, banner_type, banner):
         if banner_type == BANNER_SUCCESS:
             return 
         else:
@@ -80,8 +82,8 @@ class uxDriver(PlexDriver):
             raise UpdateError(banner_text)
     
 
-    def wait_for_gears(self,loading_timeout=10):
-        super().wait_for_gears(PLEX_GEARS_SELECTOR,loading_timeout)
+    def wait_for_gears(self, loading_timeout=10):
+        super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
         # """
         # Wait for the spinning gears image to appear and wait for it to dissappear.
 
@@ -97,10 +99,10 @@ class uxDriver(PlexDriver):
         #     Use this if the screen usually takes a long time to load/search.
         # """
         # gears_visible = False
-        # gears_visible = self.wait_for_element(UX_PLEX_GEARS_SELECTOR,type=VISIBLE,timeout=1,ignore_exception=True)
+        # gears_visible = self.wait_for_element(UX_PLEX_GEARS_SELECTOR, type=VISIBLE, timeout=1, ignore_exception=True)
         # timeout = loading_timeout if gears_visible else 1
         # self.debug_logger.debug(f'Timeout for invisible is {timeout}.')
-        # self.wait_for_element(UX_PLEX_GEARS_SELECTOR,type=INVISIBLE,timeout=timeout,ignore_exception=True)
+        # self.wait_for_element(UX_PLEX_GEARS_SELECTOR, type=INVISIBLE, timeout=timeout, ignore_exception=True)
 
 
     def click_button(self, button_text, driver=None):
@@ -120,24 +122,24 @@ class uxDriver(PlexDriver):
             If you don't provide the root driver, then the main page's Ok button will be clicked and not the popup window's button.
             ::
 
-                popup_window = driver.find_element(By.ID,'popupID')
-                click_button('Ok',driver=popup_window)
+                popup_window = driver.find_element(By.ID, 'popupID')
+                click_button('Ok', driver=popup_window)
 
             Alternatively:
             ::
 
-                pa = uxDriver()
-                popup_window = pa.wait_for_element((By.ID,'popupID'))
+                pa = UXDriver()
+                popup_window = pa.wait_for_element((By.ID, 'popupID'))
                 popup_window.click_button('Ok')
                 
         """
         driver = driver or self.driver
-        buttons = driver.find_elements(By.TAG_NAME,'button')
+        buttons = driver.find_elements(By.TAG_NAME, 'button')
         for b in buttons:
             if b.get_property('textContent') == button_text:
                 self.debug_logger.debug(f'Button found with matching text: {button_text}')
                 b.click()
-                return
+                break
             
 
     def login(self, username, password, company_code, pcn, test_db=True, headless=False):
@@ -170,7 +172,7 @@ class uxDriver(PlexDriver):
         return self.url_token
     
     
-    def _pcn_switch(self,pcn=None):
+    def _pcn_switch(self, pcn=None):
         if not pcn:
             pcn = self.pcn
         if self.first_login:
@@ -185,11 +187,11 @@ class uxDriver(PlexDriver):
     def _login_validate(self):
         url = self.driver.current_url
         if not any(url_part in url.upper() for url_part in SIGNON_URL_PARTS):
-            raise LoginError(self.environment, self.db, self.pcn_name,'Login page not detected. Please validate login credentials and try again.')
+            raise LoginError(self.environment, self.db, self.pcn_name, 'Login page not detected. Please validate login credentials and try again.')
         
 
 
-class uxPlexElement(PlexElement):
+class UXPlexElement(PlexElement):
     """
     Unique functions
         sync_picker
@@ -200,14 +202,14 @@ class uxPlexElement(PlexElement):
         sync_checkbox
         save_element_image
     driver class functions
-        wait_for_gears uxDriver inheritance
+        wait_for_gears UXDriver inheritance
         wait_for_element PlexElement inheritance
     """
     def __init__(self, webelement, parent):
         super().__init__(webelement, parent)
 
 
-    def sync_picker(self, text_content, clear=False,date=False):
+    def sync_picker(self, text_content, clear=False, date=False):
             """
             Sync the picker element to the provided value.
 
@@ -246,10 +248,10 @@ class uxPlexElement(PlexElement):
                 try:
                     # We would then need to locate if a value is already input and check the title attribute
                     self.debug_logger.debug(f'Trying to locate an existing selected item.')
-                    selected_element = self.wait_for_element((By.XPATH,"preceding-sibling::div[@class='plex-picker-selected-items']"),driver=self,timeout=1)
+                    selected_element = self.wait_for_element((By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']"), driver=self, timeout=1)
                     if selected_element:
                         self.debug_logger.debug(f'Selected item detected')
-                        selected_item = self.wait_for_element((By.CLASS_NAME,"plex-picker-item-text"),driver=selected_element)
+                        selected_item = self.wait_for_element((By.CLASS_NAME, "plex-picker-item-text"), driver=selected_element)
                         current_text = selected_item.get_property('textContent')
                         if current_text != text_content:
                             self.debug_logger.info(f'Current text: {current_text} does not match provided text: {text_content}')
@@ -259,7 +261,7 @@ class uxPlexElement(PlexElement):
                             self.debug_logger.debug(f'Current text: {current_text} matches provided text: {text_content}.')
                             matching = True
                             return
-                except (NoSuchElementException,TimeoutException):
+                except (NoSuchElementException, TimeoutException):
                     self.debug_logger.debug(f'No initial selected item.')
                 finally:
                     if matching:
@@ -270,26 +272,26 @@ class uxPlexElement(PlexElement):
                     try:
                         if date:
                             self.debug_logger.debug(f'Picker is a date filter.')
-                            self.wait_for_element((By.XPATH,"preceding-sibling::div[@class='plex-picker-item']"),driver=self,timeout=5)
+                            self.wait_for_element((By.XPATH, "preceding-sibling::div[@class='plex-picker-item']"), driver=self, timeout=5)
                             self.debug_logger.info(f'Date picker has been filled in with {text_content}')
                         else:
-                            self.wait_for_element((By.XPATH,"preceding-sibling::div[@class='plex-picker-selected-items']"),driver=self,timeout=5)
+                            self.wait_for_element((By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']"), driver=self, timeout=5)
                             self.debug_logger.info(f'Normal picker has been filled in with {text_content}')
-                    except (TimeoutException,NoSuchElementException) as e:
+                    except (TimeoutException, NoSuchElementException) as e:
                         try:
                             self.debug_logger.debug(f'No auto filled item, checking for a popup window.')
-                            popup = self.wait_for_element((By.CLASS_NAME,'modal-dialog.plex-picker'), timeout=3)
+                            popup = self.wait_for_element((By.CLASS_NAME, 'modal-dialog.plex-picker'), timeout=3)
                             if 'plex-picker-multi' in popup.get_attribute('class'):
                                 self.debug_logger.debug(f'Picker is a multi-picker')
                                 multi = True
                             self.wait_for_gears()
-                            items = popup.find_elements(By.CLASS_NAME,'plex-grid-row')
+                            items = popup.find_elements(By.CLASS_NAME, 'plex-grid-row')
                             if not items:
-                                result_text = popup.find_element(By.TAG_NAME,'h4').get_property('textContent')
+                                result_text = popup.find_element(By.TAG_NAME, 'h4').get_property('textContent')
                                 if 'No records' in result_text:
                                     self.debug_logger.info(f'No records found for {text_content}')
-                                    footer = popup.find_element(By.CLASS_NAME,'modal-footer')
-                                    _cancel = footer.find_element(By.LINK_TEXT,'Cancel')
+                                    footer = popup.find_element(By.CLASS_NAME, 'modal-footer')
+                                    _cancel = footer.find_element(By.LINK_TEXT, 'Cancel')
                                     _cancel.click()
                                     raise NoRecordError(f'No records found for {text_content}')
                             for i in items:
@@ -299,8 +301,8 @@ class uxPlexElement(PlexElement):
                                 i.click()
                                 if multi:
                                     self.debug_logger.info(f'Multi-picker, clicking ok on the popup window.')
-                                    self.click_button('Ok',driver=popup)
+                                    self.click_button('Ok', driver=popup)
                                     self.debug_logger.info(f'Multi-picker, clicked ok on the popup window.')
                                     
-                        except (TimeoutException,NoSuchElementException) as e:
+                        except (TimeoutException, NoSuchElementException) as e:
                             self.debug_logger.info(f'No matching elements found for {text_content}')
