@@ -49,7 +49,6 @@ class DataSourceInput(ABC):
     def __init__(self, api_id: str, type: Literal['classic', 'ux', 'api'], *args, **kwargs):
         self.__api_id__ = str(api_id)
         self.__refresh_query__ = True
-        self.__input_types__ = {}
 
         if not type.lower() in TYPE_VALUES:
             raise ValueError(f"{type(self).__name__} type must be one of {TYPE_VALUES}. Received '{type}'.")
@@ -99,7 +98,7 @@ class DataSourceInput(ABC):
         """
         purge_attrs = []
         for y in vars(self).keys():
-            if getattr(self, y) == None or y not in self.__input_types__.keys():
+            if getattr(self, y) is None:
                 purge_attrs.append(y)
         for y in purge_attrs:
             self.pop_inputs(y)

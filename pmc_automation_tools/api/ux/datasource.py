@@ -91,6 +91,14 @@ class UXDataSourceInput(DataSourceInput):
                 self.pop_inputs(k)
         self.type_reconcile()
 
+    def purge_empty(self):
+        super().purge_empty()
+        purge_attrs = []
+        for y in vars(self).keys():
+            if y not in self.__input_types__.keys():
+                purge_attrs.append(y)
+        for y in purge_attrs:
+            self.pop_inputs(y)
 
 class UXDataSource(DataSource):
     def __init__(self, *args, 
