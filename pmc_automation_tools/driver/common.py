@@ -4,7 +4,7 @@ import winreg
 import re
 from warnings import warn
 
-from common.get_file_properties import getFileProperties
+from pmc_automation_tools.common.get_file_properties import getFileProperties
 import os
 import csv
 import sys
@@ -28,13 +28,13 @@ from selenium.common.exceptions import (
     )
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.remote.webelement import WebElement
-from common.exceptions import (
+from pmc_automation_tools.common.exceptions import (
     UpdateError,
     NoRecordError,
     LoginError,
     PlexAutomateError
 )
-from common.utils import (
+from pmc_automation_tools.common.utils import (
     debug_logger,
     # debug_dump_variables,
     frozen_check,

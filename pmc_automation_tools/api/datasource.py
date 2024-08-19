@@ -1,4 +1,4 @@
-from api.common import (
+from pmc_automation_tools.api.common import (
     DataSourceInput,
     DataSourceResponse,
     DataSource,
@@ -7,7 +7,7 @@ from api.common import (
     BACKOFF,
     RETRY_STATUSES
     )
-from common.exceptions import ApiError
+from pmc_automation_tools.common.exceptions import ApiError
 import requests
 from requests.exceptions import HTTPError
 

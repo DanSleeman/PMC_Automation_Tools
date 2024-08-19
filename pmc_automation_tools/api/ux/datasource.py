@@ -4,7 +4,7 @@ import os
 import json
 from warnings import warn
 from requests.auth import HTTPBasicAuth
-from api.common import (
+from pmc_automation_tools.api.common import (
     DataSourceInput,
     DataSourceResponse,
     DataSource,
@@ -13,7 +13,7 @@ from api.common import (
     BACKOFF,
     RETRY_STATUSES
     )
-from common.exceptions import(
+from pmc_automation_tools.common.exceptions import(
     PlexResponseError,
     UXResponseError,
     UXResponseErrorLog
@@ -69,15 +69,15 @@ class UXDataSourceInput(DataSourceInput):
 
     def type_reconcile(self):
         for k, v in vars(self).items():
-            if k.startswith('_') or not v or k not in self.__input_types__:
+            if k.startswith('_') or not v or k not in self.__input_types__.keys():
                 continue
             target_type = getattr(self, '__input_types__')[k]
             if target_type is int:
                 new_val = None if isinstance(v, str) and not v.strip() else target_type(v)
             elif target_type is str:
-                new_val = self.xstr(v)
+                new_val = self._xstr(v)
             elif target_type is bool:
-                new_val = self.xbool(v)
+                new_val = self._xbool(v)
             else:
                 new_val = target_type(v)
             setattr(self, k, new_val)
@@ -122,7 +122,7 @@ class UXDataSource(DataSource):
     
     def call_data_source(self, query:UXDataSourceInput):
         url = f'https://{self.url_db}cloud.plex.com/api/datasources/{query.__api_id__}/execute?format=2'
-        session = self._create_session(url)
+        session = self._create_session()
         response = session.post(url, json=query._query_string, auth=self._auth)
         json_data = response.json()
         return UXDataSourceResponse(query.__api_id__, **json_data)

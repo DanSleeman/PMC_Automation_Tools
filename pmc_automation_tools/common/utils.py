@@ -73,7 +73,49 @@ def create_batch_folder(root='', batch_code=None, include_time=False, test=False
     batch_folder = os.path.join(root, 'batch_codes', db, folder_name)
     os.makedirs(batch_folder, exist_ok=True)
     return batch_folder
+def setup_logger(name, log_file='log.log', file_format='DAILY',
+                     level=logging.DEBUG, formatter=None, root_dir=None):
+    """
+    To setup as many loggers as you want.
 
+    The log file name will have the date pre-pended to whatever is added as the
+    log file name
+
+    Default formatter %(asctime)s - %(name)s - %(levelname)s - %(message)s
+    """
+    if formatter == None:
+        formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    _name = str(name)
+    _file_format = str(file_format).upper()
+    today = datetime.now()
+    _formatter = logging.Formatter(formatter)
+    if _file_format == 'DAILY':
+        log_date = today.strftime("%Y_%m_%d_")
+    elif _file_format == 'MONTHLY':
+        log_date = today.strftime("%Y_%m_")
+    else:
+        log_date = ''
+    _log_file = log_date + log_file
+    if root_dir:
+        _log_file = os.path.join(root_dir, _log_file)
+    handler = logging.FileHandler(_log_file, mode='a', encoding='utf-8')
+    handler.setFormatter(_formatter)
+    logger = logging.getLogger(_name)
+    logger.setLevel(level)
+    if not logger.hasHandlers():
+        logger.addHandler(handler)
+    return logger
+
+def read_updated(in_file):
+    updated_records = []
+    if os.path.exists(in_file):
+        with open(in_file, 'r', encoding='utf-8') as f:
+            updated_records = json.load(f)
+    return updated_records or []
+
+def save_updated(in_file, dict):
+    with open(in_file, 'w+', encoding='utf-8') as f:
+        f.write(json.dumps(dict, indent=4))
 
 class PMCUtils(ABC):
 

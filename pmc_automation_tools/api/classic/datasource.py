@@ -1,5 +1,5 @@
-from api.common import DataSourceInput, DataSourceResponse, DataSource
-from common.exceptions import ClassicConnectionError
+from pmc_automation_tools.api.common import DataSourceInput, DataSourceResponse, DataSource
+from pmc_automation_tools.common.exceptions import ClassicConnectionError
 
 import requests
 from typing import Literal
