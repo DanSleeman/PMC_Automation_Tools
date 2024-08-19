@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='pmc_automation_tools',
+    name='PMC_Automation_Tools',
     version='1.0.0',
     author='Dan Sleeman',
     author_email='sleemand@shapecorp.com',
