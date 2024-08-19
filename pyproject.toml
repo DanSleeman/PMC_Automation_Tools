@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pmc-automation-tools"
+dynamic = ["version"]
+description = "A collection of tools to help automate Plex Manufacturing Cloud activities."
+readme = "README.md"
+license-files = { paths = ["LICENSE"] }
+requires-python = ">=3.8"
+authors = [
+    { name = "Dan Sleeman", email = "sleemand@shapecorp.com" },
+]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "pywin32>=306",
+    "Requests>=2.31.0",
+    "selenium>=4.13.0",
+    "zeep>=4.2.1",
+]
+
+[project.scripts]
+
+[project.urls]
+Homepage = ""
+
+[tool.hatch.version]
+path = "pmc_automation_tools/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/pmc_automation_tools",
+]
