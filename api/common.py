@@ -123,10 +123,11 @@ class DataSource(ABC):
         - pcn_config_file: str, optional
             - Path to JSON file containing username/password credentials for HTTPBasicAuth connections.
         """
-        self._auth = self.set_auth(kwargs.get('pcn', auth))
+        
         self._test_db = test_db
         self._pcn_config_file = pcn_config_file
         self.__datasource_type__ = type
+        self._auth = self.set_auth(kwargs.get('pcn', auth))
 
 
     def _check_api_key(self, input_str: str) -> bool:

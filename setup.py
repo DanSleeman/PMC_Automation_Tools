@@ -19,7 +19,8 @@ setup(
     install_requires=[
         'pywin32>=306',
         'selenium>=4.13.0',
-        'Pillow>=10.0.1'
+        'zeep~=4.2.1',
+        'Requests>=2.31.0'
     ],
     entry_points={
         'console_scripts': [

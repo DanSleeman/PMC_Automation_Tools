@@ -20,7 +20,7 @@ from common.exceptions import(
 )
 import requests
 from urllib3.util.retry import Retry
-
+from itertools import chain
 class UXDataSourceInput(DataSourceInput):
     def __init__(self, data_source_key: str, *args, template_folder: str=None, **kwargs):
         super().__init__(data_source_key, type='ux', *args, **kwargs)
@@ -111,20 +111,39 @@ class UXDataSource(DataSource):
             - Path to JSON file containing username/password credentials for HTTPBasicAuth connections.
         """
         super().__init__(*args, auth=auth, test_db=test_db, pcn_config_file=pcn_config_file, type='ux', **kwargs)
-
-    def call_data_source(self, query:UXDataSourceInput):
-        if self._test_db:
-            db = 'test.'
-        else:
-            db = ''
-        url = f'https://{db}cloud.plex.com/api/datasources/{query.__api_id__}/execute?format=2'
+        self.url_db = 'test.' if self._test_db else ''
+    
+    def _create_session(self):
         session = requests.Session()
         retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
         adapter = CustomSslContextHTTPAdapter(max_retries=retry)
         session.mount('https://', adapter)
+        return session
+    
+    def call_data_source(self, query:UXDataSourceInput):
+        url = f'https://{self.url_db}cloud.plex.com/api/datasources/{query.__api_id__}/execute?format=2'
+        session = self._create_session(url)
         response = session.post(url, json=query._query_string, auth=self._auth)
         json_data = response.json()
         return UXDataSourceResponse(query.__api_id__, **json_data)
+    
+    def list_data_source_access(self, pcn:str =None, all_accounts=False):
+        url = f'https://{self.url_db}cloud.plex.com/api/datasources/search?name='
+        session = self._create_session()
+        access_list = []
+        if all_accounts:
+            pcn_list = [pcn for pcn in self.launch_pcn_dict.keys()]
+        else:
+            pcn_list = [pcn]
+        for pcn in pcn_list:
+            self._auth = self.set_auth(pcn)
+            response = session.get(url, auth=self._auth)
+            j = json.loads(response.text)
+            for ds in j:
+                ds['pcn'] = pcn
+            access_list.append(j)
+        all_datasources = list(chain.from_iterable(access_list))
+        return UXDataSourceResponse('all_access',rows=all_datasources)
 
 class UXDataSourceResponse(DataSourceResponse):
     def __init__(self, data_source_key, **kwargs):

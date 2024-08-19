@@ -27,6 +27,10 @@ ui = UXDataSourceInput(ds_id, template_folder='resources/templates')
 ui.pop_inputs(keep=[])
 # ui.PO_Key = 2883902
 u = UXDataSource(auth='Grand Haven')
+
+access = u.list_data_source_access(pcn='Grand Haven')
+access.save_csv('resources/all_access.csv')
+
 try:
     r = u.call_data_source(ui)
 except UXResponseErrorLog as e:
