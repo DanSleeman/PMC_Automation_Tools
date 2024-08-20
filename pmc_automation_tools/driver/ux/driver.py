@@ -141,6 +141,52 @@ class UXDriver(PlexDriver):
                 b.click()
                 break
             
+    def click_action_bar_item(self, item, sub_item=None):
+        """
+        Clicks on an action bar item.
+
+        Parameters:
+            item - Text for the item to click
+            sub_item - Text for the item if it is within a dropdown from clicking the item first.
+        """
+        action_bar = self.wait_for_element((By.CLASS_NAME, 'plex-actions'))
+
+        # Check for the "More" link and determine if it's visible
+        try:
+            more_box = action_bar.find_element(By.LINK_TEXT, "More")
+            style = more_box.find_element(By.XPATH, 'ancestor::li').get_dom_attribute('style')
+            more_visible = 'none' not in style
+            self.debug_logger.debug(f"'More' link {'found and visible' if more_visible else 'found but not visible'}.")
+        except NoSuchElementException:
+            self.debug_logger.debug('No element found for "More" link.')
+            more_visible = False
+        # Click on "More" if visible and adjust the action bar
+        if more_visible:
+            self.debug_logger.debug('Clicking "More" button.')
+            more_box.click()
+            self.wait_for_element((By.CLASS_NAME, "plex-subactions.open"))
+            action_bar = self.wait_for_element((By.CLASS_NAME, 'plex-actions-more'))
+
+        # Handle sub_item or main item click
+        if sub_item:
+            self.self.debug_logger.debug("Clicking sub-item.")
+            self._click_sub_item(action_bar, item, sub_item)
+        else:
+            self.self.debug_logger.debug("Clicking main item.")
+            action_item = self.wait_for_element((By.LINK_TEXT, item), type=CLICKABLE)
+            action_item.click()
+
+    def _click_sub_item(self, action_bar, item, sub_item):
+        """Helper function to click on a sub-item."""
+        action_items = action_bar.find_elements(By.CLASS_NAME, "plex-actions-has-more")
+        for a in action_items:
+            span_texts = a.find_elements(By.TAG_NAME, 'span')
+            for s in span_texts:
+                if s.get_property('textContent') == item:
+                    s.find_element(By.XPATH, "ancestor::a").click()
+                    break
+        action_bar.find_element(By.LINK_TEXT, sub_item).click()
+
 
     def login(self, username, password, company_code, pcn, test_db=True, headless=False):
         self._set_login_vars()

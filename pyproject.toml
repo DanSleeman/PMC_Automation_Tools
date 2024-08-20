@@ -27,7 +27,7 @@ dependencies = [
 [project.scripts]
 
 [project.urls]
-Homepage = ""
+Homepage = "https://github.com/ClawhammerLobotomy/PMC_Automation_Tools"
 
 [tool.hatch.version]
 path = "pmc_automation_tools/__init__.py"
