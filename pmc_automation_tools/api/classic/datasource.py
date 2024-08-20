@@ -19,7 +19,7 @@ class ClassicDataSourceInput(DataSourceInput):
 
     def _update_input_parameters(self):
         self._parameter_names = self._delimeter.join([k for k, v in vars(self).items() if not k.startswith('_')])
-        self._parameter_values = self._delimeter.join([v for k, v in vars(self).items() if not k.startswith('_')])
+        self._parameter_values = self._delimeter.join([str(v) for k, v in vars(self).items() if not k.startswith('_')])
 
 
 class ClassicDataSource(DataSource):

@@ -1,15 +1,15 @@
-# Plex Manufacturing Cloud Automation Tools
+# Plex Manufacturing Cloud (PMC) Automation Tools
 
-This library provides functionality to log into Plex Manufacturing Cloud and automate tasks under a user's account.
+This library serves two main functions.
 
-Supports classic and UX.
+1. Methods to log into PMC and automate tasks under a user's account.
+    * Supports classic and UX.
+    * This is basically a wrapper around Selenium with specific functions designed around how the PMC screens behave.
 
-This is basically a wrapper around Selenium with specific functions designed around how the PMC screens behave.
-
-There are also functions for calling PMC data sources.
-* Classic SOAP data sources
-* UX REST data sources
-* Modern APIs (developer portal)
+2. Methods for calling PMC data sources.
+    * Classic SOAP data sources
+    * UX REST data sources
+    * Modern APIs (developer portal)
 
 ## Requirements
 
@@ -23,6 +23,7 @@ In order to make classic SOAP calls, you will also need the WSDL files from Plex
 
 They do not expose their WSDL URL anymore, but the files are on the community.
 
+## 
 
 ## Usage
 
