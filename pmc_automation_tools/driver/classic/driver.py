@@ -1,7 +1,6 @@
 import os
 from warnings import warn
 import sys
-from typing import Literal, Self
 from pmc_automation_tools.driver.common import (
     PlexDriver,
     PlexElement,
@@ -34,7 +33,7 @@ import csv
 from pmc_automation_tools.common.utils import (
     get_case_insensitive_key_value
 )
-# TODO - figure out classic gears locator
+
 PLEX_GEARS_SELECTOR = (By.ID, '__WAITMESSAGE_CONTAINER')
 PCN_SQL = '''Please create the pcn.json file by running the following SQL report in Plex and save it as a csv file.
 
@@ -230,4 +229,4 @@ class ClassicPlexElement(PlexElement):
         super().__init__(webelement, parent)
 
     def sync_picker(self, text_content, clear=False, date=False):
-        """"""
+        """TODO - Create this function."""

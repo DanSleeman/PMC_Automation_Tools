@@ -1,5 +1,4 @@
 # UX Datasource
-from typing import Literal
 import os
 import json
 from warnings import warn
@@ -14,8 +13,6 @@ from pmc_automation_tools.api.common import (
     RETRY_STATUSES
     )
 from pmc_automation_tools.common.exceptions import(
-    PlexResponseError,
-    UXResponseError,
     UXResponseErrorLog
 )
 import requests

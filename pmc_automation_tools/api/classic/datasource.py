@@ -2,7 +2,6 @@ from pmc_automation_tools.api.common import DataSourceInput, DataSourceResponse,
 from pmc_automation_tools.common.exceptions import ClassicConnectionError
 
 import requests
-from typing import Literal
 from requests.auth import HTTPBasicAuth
 
 from zeep import Client

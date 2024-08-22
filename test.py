@@ -1,20 +1,20 @@
-from api.ux.datasource import (
+from pmc_automation_tools.api.ux.datasource import (
     UXDataSource,
     UXDataSourceInput,
     UXDataSourceResponse
     )
-from api.classic.datasource import (
+from pmc_automation_tools.api.classic.datasource import (
     ClassicDataSource,
     ClassicDataSourceInput,
     ClassicDataSourceResponse
     )
-from api.datasource import ApiDataSourceInput
+from pmc_automation_tools.api.datasource import ApiDataSourceInput
 import os
-from driver.common import PlexDriver
-from driver.ux.driver import UXDriver
-from driver.classic.driver import ClassicDriver
-from common.utils import create_batch_folder
-from common.exceptions import UXResponseErrorLog
+from pmc_automation_tools.driver.common import PlexDriver
+from pmc_automation_tools.driver.ux.driver import UXDriver
+from pmc_automation_tools.driver.classic.driver import ClassicDriver
+from pmc_automation_tools.common.utils import create_batch_folder
+from pmc_automation_tools.common.exceptions import UXResponseErrorLog
 import logging
 db = 'test'
 

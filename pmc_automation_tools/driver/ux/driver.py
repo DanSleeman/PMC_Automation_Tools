@@ -1,4 +1,4 @@
-from typing import Literal, Self
+from typing import Literal
 from pmc_automation_tools.driver.common import (
     PlexDriver,
     PlexElement,
@@ -19,9 +19,8 @@ from selenium.webdriver.support.ui import Select
 from pmc_automation_tools.common.exceptions import (
     UpdateError,
     NoRecordError,
-    LoginError,
-    PlexAutomateError
-)
+    LoginError
+    )
 import time
 BANNER_SUCCESS = 1
 BANNER_WARNING = 2

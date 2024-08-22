@@ -6,12 +6,10 @@ from warnings import warn
 
 from pmc_automation_tools.common.get_file_properties import getFileProperties
 import os
-import csv
-import sys
 import time
 import json
 from abc import ABC, abstractmethod
-from typing import Literal, Self
+from typing import Literal
 from pathlib import Path
 
 from selenium import webdriver
@@ -19,7 +17,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
     TimeoutException,
@@ -30,16 +28,11 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.remote.webelement import WebElement
 from pmc_automation_tools.common.exceptions import (
     UpdateError,
-    NoRecordError,
     LoginError,
-    PlexAutomateError
 )
 from pmc_automation_tools.common.utils import (
     debug_logger,
-    # debug_dump_variables,
-    frozen_check,
     create_batch_folder,
-    # setup_logger
     )
 VALID_ENVIRONMENTS = {'ux', 'classic'}
 

@@ -3,7 +3,6 @@ import os
 import json
 from requests.auth import HTTPBasicAuth
 from pmc_automation_tools.common.exceptions import PlexResponseError
-from warnings import warn
 from typing import Literal
 from abc import ABC, abstractmethod
 from requests.adapters import HTTPAdapter
