@@ -419,7 +419,7 @@ Automate data entry into screens which do not support or have an upload, datasou
 
 This example demonstrates updating a container type's dimensions from a csv file.
 
-https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_1.py
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/d3846296871f0b4b68daa9140523838668774723/examples/example_1.py
 
 #### Example 2
 
@@ -429,7 +429,7 @@ This example demonstrates saving the SQL records to a file in a batch folder whi
 
 This data source is also for updating a container types's dimensions.
 
-https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_2.py
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/d3846296871f0b4b68daa9140523838668774723/examples/example_2.py
 
 #### Example 3
 
@@ -437,10 +437,10 @@ Call a classic data source from a csv file row.
 
 This demonstrates adding supplier cert records into a new PCN based on the current cert records in another PCN.
 
-https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_3.py
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/d3846296871f0b4b68daa9140523838668774723/examples/example_3.py
 
 #### Example 4
 
 Call a developer portal API to download EDI documents and save them to a file.
 
-https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_4.py
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/d3846296871f0b4b68daa9140523838668774723/examples/example_4.py
