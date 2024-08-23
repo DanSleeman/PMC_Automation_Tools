@@ -419,7 +419,7 @@ Automate data entry into screens which do not support or have an upload, datasou
 
 This example demonstrates updating a container type's dimensions from a csv file.
 
-https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/d3846296871f0b4b68daa9140523838668774723/examples/example_1.py
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/d3846296871f0b4b68daa9140523838668774723/examples/example_1.py#L1-
 
 #### Example 2
 
