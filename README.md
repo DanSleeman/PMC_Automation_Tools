@@ -419,187 +419,28 @@ Automate data entry into screens which do not support or have an upload, datasou
 
 This example demonstrates updating a container type's dimensions from a csv file.
 
-```python
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_1.py
 
-from pmc_automation_tools import UXDriver
-import csv
-
-csv_file = 'container_types.csv'
-pa = UXDriver(driver_type='edge') # edge or chrome is supported
-driver, url_comb, token = pa.login(username,password,company_code,pcn,test_db=True)
-token = pa.pcn_switch(destination_pcn)
-pa.driver.get(f'{url_comb}/VisionPlex/Screen?__actionKey=6531&{token}&__features=novirtual') # &__features=novirtual will stop the results grid from lazy loading.
-pa.wait_for_gears()
-pa.wait_for_element((By.NAME,'ContainerTypenew'))
-pa.ux_click_button('Search')
-pa.wait_for_gears()
-
-with open(csv_file,'r',encoding='utf-8-sig') as f:
-    c = csv.DictReader(f)
-    for r in c:
-        container_type = r['container_type']
-        cube_width = r['cube_width']
-        cube_height = r['cube_height']
-        cube_length = r['cube_length']
-        cube_unit = r['cube_unit']
-        pa.wait_for_element((By.LINK_TEXT,container_type)).click()
-        pa.wait_for_gears()
-        pa.wait_for_element((By.NAME,'CubeLength')).sync_textbox(cube_length)
-        pa.wait_for_element((By.NAME,'CubeWidth')).sync_textbox(cube_width)
-        pa.wait_for_element((By.NAME,'CubeHeight')).sync_textbox(cube_height)
-        pa.wait_for_element((By.NAME,'UnitKey')).sync_picker(cube_unit)
-        pa.ux_click_button('Ok')
-        pa.wait_for_banner()
-        pa.wait_for_gears()
-        pa.wait_for_element((By.NAME,'ContainerTypenew'))
-        pa.wait_for_gears()
-        pa.wait_for_banner()
-```
 #### Example 2
 
 Call a UX datasource from a Plex SQL query.
 
 This example demonstrates saving the SQL records to a file in a batch folder which can be referenced to prevent duplicate updates if running in the same batch.
 
-This data source is also for updating a container's dimensions.
+This data source is also for updating a container types's dimensions.
 
-```python
-from pmc_automation_tools import UXDataSourceInput, UXDataSource, save_update, read_update, setup_logger, create_batch_folder
-in_file = 'plex_sql_report.csv'
-ds_id = '2360'
-pcn = '123456'
-update_file = 'updated_records.json'
-batch_folder = create_batch_folder(test=True)
-logger = setup_logger('Container Updates',log_file='Container_Updates.log',root_dir=batch_folder,level=10) #level=logging.DEBUG
-ux = UXDataSource(pcn, test_db=True)
-updates = read_update(update_file)
-with open(in_file,'r',encoding='utf-8-sig') as f: # use utf-8-sig if exporting a CSV from classic SDE
-    c = csv.DictReader(f)
-    for r in c:
-        container_type = r['Container_Type']
-        try:
-            u = UXDataSourceInput(ds_id, template_folder='templates')
-            u.pop_inputs(keep=[])
-            for k,v in r.items():
-                setattr(u,k,v)
-            log_record = {k:v for k,v in vars(u).items() if not k.startswith('_')}
-            u.pop_inputs('Container_Type')
-            u.type_reconcile()
-            u.purge_empty()
-            if log_record in updates:
-                continue
-            r = ux.call_data_source(u)
-            updates.append(log_record)
-            logger.info(f'{pcn} - Datasource: {ds_id} - Container Type: {container_type} Updated.')
-        except:
-            logger.error(f'{pcn} - Datasource: {ds_id} - Container Type: {container_type} Failed to update.')
-        finally:
-            save_update(update_file, updates)
-```
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_2.py
+
 #### Example 3
 
 Call a classic data source from a csv file row.
 
 This demonstrates adding supplier cert records into a new PCN based on the current cert records in another PCN.
 
-```python
-from pmc_automation_tools import (
-    ClassicDataSource,
-    ClassicDataSourceInput,
-    ClassicConnectionError,
-    create_batch_folder,
-    setup_logger,
-    read_updated,
-    save_updated
-)
-import csv
-import os
-
-
-batch_folder = create_batch_folder(test=True)
-logger = setup_logger('Supplier Cert',log_file='certs_added.log',root_dir=batch_folder)
-cert_updates_file = os.path.join(batch_folder,'cert_updates.json')
-updated_records = read_updated(cert_updates_file)
-
-input_file = 'cert_reference.csv'
-pcn = 'PCN name'
-
-wsdl = os.path.join('resources','Plex_SOAP_prod.wsdl')
-pc = ClassicDataSource(auth=pcn,test_db=True,wsdl=wsdl)
-
-with open(input_file,'r',encoding='utf-8-sig') as f:
-    c = csv.DictReader(f)
-    for r in c:
-        try:
-            ci = ClassicDataSourceInput(57073)
-            supplier_code = r['Delete - Supplier Code'] # just for reference
-            cert_name = r['Delete - Certification'] # just for reference
-            ci.MP1_Supp_Cert_List_Key = r['Supplier_Cert_List_Key']
-            ci.MP1_Begin_Date = r['Begin_Date']
-            if not r['Begin_Date']: # Some certs possibly had no begin date in classic which is not allowed.
-                logger.warning(f'{pcn} - {supplier_code} - {cert_name} : {r["Note"]} - Missing start date.')
-                continue
-            ci.MP1_Expiration_Date = r['Expiration_Date']
-            ci.MP1_Note = r['Note']
-            ci.MP1_Parent = r['Parent']
-            ci.MP_Supplier_Cert_Key = r['Supplier_Cert_Key']
-            ci.Cert_Supplier_No = r['Cert_Supplier_No']
-            log_record = {k:v for k,v in vars(ci).items() if not k.startswith('_')}
-            if log_record in updated_records:
-                continue
-            response = pc.call_data_source(ci)
-            logger.info(f'{pcn} - {supplier_code} - {cert_name} - Added')
-            updated_records.append(log_record)
-        except ClassicConnectionError as e:
-            logger.error(f'{pcn} - {supplier_code} - {cert_name} - Failed to be added - {str(e)}')
-        finally:
-            save_updated(cert_updates_file,updated_records)
-```
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_3.py
 
 #### Example 4
 
-Call a developer portal API to download EDI documents
+Call a developer portal API to download EDI documents and save them to a file.
 
-```python
-from pmc_automation_tools import ApiDataSource, ApiDataSourceInput
-from datetime import datetime, timedelta
-import base64
-today = datetime.now()
-tomorrow = today + timedelta(days=1)
-yesterday = today - timedelta(days=1)
-pcn = '123456'
-api_key = 'API_KEY_HERE'
-a = ApiDataSource(auth=api_key, test_db=test)
-# Get customer ID
-url = 'https://connect.plex.com/mdm/v1/customers'
-method = 'get'
-ai = ApiDataSourceInput(url, method)
-ai.name = 'Customer Name'
-r = a.call_data_source(pcn, ai)
-cust_id = r.get_response_attribute('id') # Should only return 1 item.
-
-url = 'https://connect.plex.com/edi/v1/logs'
-method = 'get'
-ai = ApiDataSourceInput(url, method)
-ai.customerId = cust_id
-ai.action = 'Receive'
-ai.mailboxActive = True
-ai.logDateBegin = log_start_date = yesterday.strftime('%Y-%m-%dT04:00:00Z')
-# This will be a list of all received documents
-r = a.call_data_source(pcn, ai)
-# Filter out 830s and 862s. This isn't possible directly from the API call.
-edi_830 = r.get_response_attribute('id', preserve_list=True, documentName='830')
-edi_862 = r.get_response_attribute('id', preserve_list=True, documentName='862')
-edi_messages = edi_830.extend(edi_862)
-
-method = 'get'
-for edi_id in edi_messages:
-    url = f'https://connect.plex.com/edi/v1/documents/{edi_id}'
-    ai = ApiDataSourceInput(url, method)
-    r = a.call_data_source(pcn, ai)
-    edi_raw = r.get_response_attribute('rawDocument')
-    # You'll need to decode this from base64 string and save it to a file
-    edi_str = str(base64.b64decode(edi_raw).decode('utf-8'))
-    with open(f'{edi_id}_edi_file.txt', 'w+', encoding='utf-8') as out_file:
-        out_file.write(edi_str)
-```
+https://github.com/ClawhammerLobotomy/PMC_Automation_Tools/blob/8c87f9ef883cb6fa96eea8cf47993e571f0c7c7a/examples/example_4.py
