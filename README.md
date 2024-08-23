@@ -43,6 +43,7 @@ This library serves two main functions.
     - [type\_reconcile](#type_reconcile)
     - [get\_to\_update](#get_to_update)
     - [purge\_empty](#purge_empty-1)
+      - [Tips](#tips)
   - [DataSourceResponse Functions](#datasourceresponse-functions)
     - [save\_csv](#save_csv)
     - [save\_json](#save_json)
@@ -377,6 +378,35 @@ It avoids requiring an initial SQL query for the update calls.
 ### purge_empty
 
 Additionally removes any attributes not existing in the input_types dictionary.
+
+
+#### Tips
+
+When calling a UX data source, save a json file based on the sample call from the Plex screen.
+
+* Locate the data source details and click on "Sample Request"  
+![](./img/ux_data_source_details.jpg)
+* Click "Show more"  
+![](./img/ux_data_source_sample_1.jpg)
+* Highlight the JSON and copy the text  
+![](./img/ux_data_source_sample_2.jpg)
+* Paste into notepad
+* Save the file as a .json file with a name matching the data source ID  
+![](./img/ux_data_source_template.jpg)
+
+
+When initializing your data source input object, pass in the template file path.
+
+```python
+u = UXDataSourceInput(10941,template_folder='ds_templates')
+u.pop_inputs(keep=[]) # Removes the default values from the template file
+```
+
+Using this method, the `UXDataSourceInput` object will have an attribute which records the expected input types properly.
+
+This will allow you to use a csv source file for all the inputs without needing to define the types manually.
+
+Before making the data source call, use the `type_reconcile` function to match up the current attributes to the expected types.
 
 ## DataSourceResponse Functions
 
