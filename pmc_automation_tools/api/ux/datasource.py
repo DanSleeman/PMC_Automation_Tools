@@ -56,17 +56,22 @@ class UXDataSourceInput(DataSourceInput):
                 self.__input_types__[k] = value_type
 
 
+    def get_type(self, attribute):
+        return getattr(self, '__input_types__').get(attribute, None)
+
     def _xstr(self, s):
         return str(s or '')
 
 
     def _xbool(self, b):
+        if isinstance(b, int):
+            return bool(b)
         return b.strip().upper() != 'FALSE'
 
 
     def type_reconcile(self):
         for k, v in vars(self).items():
-            if k.startswith('_') or not v or k not in self.__input_types__.keys():
+            if k.startswith('_') or k not in self.__input_types__.keys() or v is None:
                 continue
             target_type = getattr(self, '__input_types__')[k]
             if target_type is int:
@@ -84,24 +89,26 @@ class UXDataSourceInput(DataSourceInput):
         for k, v in vars(get_instance).items():
             setattr(self, k, v)
         for k in self.__input_types__.keys():
-            if k not in vars(get_instance):
+            if k not in vars(get_instance) and not k.startswith('_'):
                 self.pop_inputs(k)
         self.type_reconcile()
+        self.purge_empty()
 
     def purge_empty(self):
         super().purge_empty()
         purge_attrs = []
         for y in vars(self).keys():
-            if y not in self.__input_types__.keys():
+            if y not in self.__input_types__.keys() and not y.startswith('_'):
                 purge_attrs.append(y)
         for y in purge_attrs:
             self.pop_inputs(y)
 
 class UXDataSource(DataSource):
-    def __init__(self, *args, 
-                 auth: HTTPBasicAuth | str = None, 
-                 test_db: bool = True, 
-                 pcn_config_file: str = 'resources/pcn_config.json', **kwargs):
+    def __init__(self, auth: HTTPBasicAuth | str,
+                 *args,
+                 test_db: bool = True,
+                 pcn_config_file: str = 'resources/pcn_config.json',
+                 **kwargs):
         """
         Parameters:
 

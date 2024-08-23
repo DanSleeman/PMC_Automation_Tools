@@ -15,6 +15,9 @@ This library serves two main functions.
 - [Plex Manufacturing Cloud (PMC) Automation Tools](#plex-manufacturing-cloud-pmc-automation-tools)
   - [Table of Contents](#table-of-contents)
   - [Requirements](#requirements)
+  - [Utilities](#utilities)
+    - [create\_batch\_folder](#create_batch_folder)
+    - [setup\_logger](#setup_logger)
   - [PlexDriver Functions](#plexdriver-functions)
     - [wait\_for\_element](#wait_for_element)
     - [wait\_for\_gears](#wait_for_gears)
@@ -24,18 +27,31 @@ This library serves two main functions.
     - [pcn\_switch](#pcn_switch)
     - [click\_button](#click_button)
     - [click\_action\_bar\_item](#click_action_bar_item)
-  - [Utilities](#utilities)
-    - [create\_batch\_folder](#create_batch_folder)
-    - [setup\_logger](#setup_logger)
   - [PlexElement Functions](#plexelement-functions)
     - [sync\_picker](#sync_picker)
     - [sync\_textbox](#sync_textbox)
     - [sync\_checkbox](#sync_checkbox)
     - [screenshot](#screenshot)
+  - [DataSource Functions](#datasource-functions)
+    - [set\_auth](#set_auth)
+    - [call\_data\_source](#call_data_source)
+      - [ApiDataSource unique details](#apidatasource-unique-details)
+  - [DataSourceInput Functions](#datasourceinput-functions)
+    - [pop\_inputs](#pop_inputs)
+    - [purge\_empty](#purge_empty)
+  - [UXDataSourceInput Unique Functions](#uxdatasourceinput-unique-functions)
+    - [type\_reconcile](#type_reconcile)
+    - [get\_to\_update](#get_to_update)
+    - [purge\_empty](#purge_empty-1)
+  - [DataSourceResponse Functions](#datasourceresponse-functions)
+    - [save\_csv](#save_csv)
+    - [save\_json](#save_json)
+    - [get\_response\_attribute](#get_response_attribute)
   - [Usage Examples](#usage-examples)
       - [Example 1](#example-1)
       - [Example 2](#example-2)
       - [Example 3](#example-3)
+      - [Example 4](#example-4)
 
 ## Requirements
 
@@ -51,6 +67,33 @@ They do not expose their WSDL URL anymore, but the files are on the community.
 
 
 
+## Utilities
+
+### create_batch_folder
+
+Create a batch folder, useful for recording transactions by run-date.
+
+Parameters
+* root - Root directory for where to create the batch folder
+* batch_code - Provide your own batch code to be used instead of generating one. Overrides include_time parameter.
+* include_time - Include the timestamp in the batch code.
+* test - Test batches. Stored in a TEST directory.
+
+Default format: YYYYmmdd
+
+Format with include_time: YYYYmmdd_HHMM
+
+### setup_logger
+
+Setup a logging file.
+
+Parameters
+* name - logger name
+* log_file - filename for the log file.
+* file_format - "DAILY" | "MONTHLY" | "". Will be combined with the log_file filename provided.
+* level - log level for the logger. logging module levels.
+* formatter - logging formatter
+* root_dir - root directory to store the log file
 
 ## PlexDriver Functions
 
@@ -200,34 +243,6 @@ Parameters
 
 If the screen is too small, or there are too many action bar items, the function will automatically check under the "More" drop-down list for the item.
 
-## Utilities
-
-### create_batch_folder
-
-Create a batch folder, useful for recording transactions by run-date.
-
-Parameters
-* root - Root directory for where to create the batch folder
-* batch_code - Provide your own batch code to be used instead of generating one. Overrides include_time parameter.
-* include_time - Include the timestamp in the batch code.
-* test - Test batches. Stored in a TEST directory.
-
-Default format: YYYYmmdd
-
-Format with include_time: YYYYmmdd_HHMM
-
-### setup_logger
-
-Setup a logging file.
-
-Parameters
-* name - logger name
-* log_file - filename for the log file.
-* file_format - "DAILY" | "MONTHLY" | "". Will be combined with the log_file filename provided.
-* level - log level for the logger. logging module levels.
-* formatter - logging formatter
-* root_dir - root directory to store the log file
-
 ## PlexElement Functions
 
 Plex specific wrappers around Selenium `WebElement` objects.
@@ -256,6 +271,145 @@ Updates a checkbox state to match the provided state.
 Wrapper around Selenium's screenshot functionality.
 
 Saves a screenshot of the element to the screenshots folder using the element's ID and name.
+
+## DataSource Functions
+
+Convenience functions for handling Plex specific web service/API calls.
+
+Supports Classic SOAP, UX REST, and Developer Portal REST API calls.
+
+Classes
+* ClassicDataSource
+* UXDataSource
+* ApiDataSource
+
+Parameters
+* auth - authentication. See `set_auth` function for more details
+* test_db - boolean. Connect to the test database if True (default).
+* pcn_config_file - file that stores pcn web service credentials.
+
+### set_auth
+
+Generate authentication to be used in the call.
+
+Parameters
+* key
+  * Classic: HTTPBasic | str for pcn_config.json lookup
+  * UX: HTTPBasic | str for pcn_config.json lookup
+  * API: API key as a string
+
+Supports using a pcn_config.json file to reference the PCN's credentials.
+
+Format expected for JSON file:
+
+```json
+{
+    "PCN_REF":{
+        "api_user":"Username@plex.com",
+        "api_pass":"password"
+    },
+    "PCN_2_REF":{
+        "api_user":"Username2@plex.com",
+        "api_pass":"password2"
+    }
+}
+```
+If not using the file, and not providing an HTTPBasicAuth object, you will be prompted to provide your credentials via the console.
+
+### call_data_source
+
+Triggers the data source request.
+
+Parameters
+* query - DataSourceInput object
+
+#### ApiDataSource unique details
+
+Parameters
+* pcn - string or list of strings containing the PCN number(s).
+
+This directs the API to the appropriate PCN.
+
+## DataSourceInput Functions
+
+Input object that stores the attributes for building the proper request format.
+
+Classes
+* ClassicDataSourceInput
+* UXDataSourceInput
+* ApiDataSourceInput
+
+### pop_inputs
+
+Removes attributes provided.
+
+Parameters
+* args - Any attribute name provided here will be removed
+* kwargs - use "keep" with a list of arguments to keep. All others will be removed.
+
+You can pass an empty list to the `keep` kwarg which will remove all other attributes.
+
+### purge_empty
+
+Removes empty/Nonetype attributes from the input.
+
+## UXDataSourceInput Unique Functions
+
+Parameters
+* template_folder - folder containing json template files from the UX data sources screen "Sample Request".
+
+Template files are expected in order to use the `type_reconcile` function.
+
+### type_reconcile
+
+Adjusts the attribute types to match the expected types of the data source.
+
+This is useful when dealing with CSV input files since the attributes will all be consider strings and will not be useable in the request call.
+
+### get_to_update
+
+Takes a `UXDataSourceResponse` object to update the attributes to match what was returned.
+
+This is useful for required fields from a data source which would be changed if you don't provide the input.
+
+It avoids requiring an initial SQL query for the update calls.
+
+### purge_empty
+
+Additionally removes any attributes not existing in the input_types dictionary.
+
+## DataSourceResponse Functions
+
+### save_csv
+
+Saves the response into a csv file.
+
+Parameters
+* out_file - file location to save.
+
+### save_json
+
+Saves the response into a json file.
+
+Parameters
+* out_file - file location to save.
+
+### get_response_attribute
+
+Extract the attribute from the formatted data in the response.
+
+Parameters
+* attribute - attribute name from the response to return
+* preserve_list - Pass true to retain a list of attributes even if a single item is found.
+* kwargs - arbitrary number of filters to use when searching for a specific attribute to return.
+
+EX: Calling the customer list API for all active customers.
+```python
+# Will return a list of ALL active customer IDs
+cust_id = r.get_response_attribute('id')
+# Will return the id for the customer with name 'NISSAN MOTOR'
+cust_id = r.get_response_attribute('id', name='NISSAN MOTOR')
+```
 
 ## Usage Examples
 
@@ -400,4 +554,52 @@ with open(input_file,'r',encoding='utf-8-sig') as f:
             logger.error(f'{pcn} - {supplier_code} - {cert_name} - Failed to be added - {str(e)}')
         finally:
             save_updated(cert_updates_file,updated_records)
+```
+
+#### Example 4
+
+Call a developer portal API to download EDI documents
+
+```python
+from pmc_automation_tools import ApiDataSource, ApiDataSourceInput
+from datetime import datetime, timedelta
+import base64
+today = datetime.now()
+tomorrow = today + timedelta(days=1)
+yesterday = today - timedelta(days=1)
+pcn = '123456'
+api_key = 'API_KEY_HERE'
+a = ApiDataSource(auth=api_key, test_db=test)
+# Get customer ID
+url = 'https://connect.plex.com/mdm/v1/customers'
+method = 'get'
+ai = ApiDataSourceInput(url, method)
+ai.name = 'Customer Name'
+r = a.call_data_source(pcn, ai)
+cust_id = r.get_response_attribute('id') # Should only return 1 item.
+
+url = 'https://connect.plex.com/edi/v1/logs'
+method = 'get'
+ai = ApiDataSourceInput(url, method)
+ai.customerId = cust_id
+ai.action = 'Receive'
+ai.mailboxActive = True
+ai.logDateBegin = log_start_date = yesterday.strftime('%Y-%m-%dT04:00:00Z')
+# This will be a list of all received documents
+r = a.call_data_source(pcn, ai)
+# Filter out 830s and 862s. This isn't possible directly from the API call.
+edi_830 = r.get_response_attribute('id', preserve_list=True, documentName='830')
+edi_862 = r.get_response_attribute('id', preserve_list=True, documentName='862')
+edi_messages = edi_830.extend(edi_862)
+
+method = 'get'
+for edi_id in edi_messages:
+    url = f'https://connect.plex.com/edi/v1/documents/{edi_id}'
+    ai = ApiDataSourceInput(url, method)
+    r = a.call_data_source(pcn, ai)
+    edi_raw = r.get_response_attribute('rawDocument')
+    # You'll need to decode this from base64 string and save it to a file
+    edi_str = str(base64.b64decode(edi_raw).decode('utf-8'))
+    with open(f'{edi_id}_edi_file.txt', 'w+', encoding='utf-8') as out_file:
+        out_file.write(edi_str)
 ```

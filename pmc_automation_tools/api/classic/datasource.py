@@ -22,10 +22,11 @@ class ClassicDataSourceInput(DataSourceInput):
 
 
 class ClassicDataSource(DataSource):
-    def __init__(self, wsdl, *args, 
-                 auth: HTTPBasicAuth|str=None, 
-                 test_db: bool = True, 
-                 pcn_config_file: str='resources/pcn_config.json', **kwargs):
+    def __init__(self, auth: HTTPBasicAuth|str, wsdl,
+                 *args,
+                 test_db: bool = True,
+                 pcn_config_file: str='resources/pcn_config.json',
+                 **kwargs):
         """
         Parameters:
         - wsdl: path

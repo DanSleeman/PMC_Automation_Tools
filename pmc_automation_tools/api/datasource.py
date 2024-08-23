@@ -29,7 +29,7 @@ class ApiDataSourceInput(DataSourceInput):
 
 
 class ApiDataSource(DataSource):
-    def __init__(self, *args, auth: str = None, test_db: bool = True, **kwargs):
+    def __init__(self, auth: str, *args, test_db: bool = True, **kwargs):
         """
         Parameters:
 
@@ -55,9 +55,9 @@ class ApiDataSource(DataSource):
             - DataSourceInput containing the connection parameters
         """
         if self._test_db:
-            query.__api_id__.replace(PROD, TEST)
+            query.__api_id__ = query.__api_id__.replace(PROD, TEST)
         response_list = []
-        if type(pcn) == str:
+        if isinstance(pcn, str):
             pcn_list = [pcn]
         for p in pcn_list:
             headers = {'Content-Type': 'application/json',
@@ -75,17 +75,17 @@ class ApiDataSource(DataSource):
             except HTTPError as e:
                 raise ApiError('Error calling API.', **response.json(), status=response.status_code)
             # TODO - Check how the various response schema should be handled
-            if response.status_code == 200 and response.text !=[]:
+            if response.status_code == 200 and response.text != []:
                 response_list.append(response.json())
             else:
                 return response
-        # TODO - Figure out how to return the response object while still being able to save to csv
-        return list(chain.from_iterable(response_list))
+        return ApiDataSourceResponse(query.__api_id__, response_list = list(chain.from_iterable(response_list)))
     
 
 class ApiDataSourceResponse(DataSourceResponse):
     def __init__(self, url, **kwargs):
         super().__init__(url, **kwargs)
+        self._format_response()
 
     def _format_response(self):
-        self._transformed_data = []
+        self._transformed_data = getattr(self, 'response_list', [])

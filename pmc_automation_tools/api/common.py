@@ -103,7 +103,7 @@ class DataSourceInput(ABC):
             self.pop_inputs(y)
 
 class DataSource(ABC):
-    def __init__(self, auth: HTTPBasicAuth|str=None,
+    def __init__(self, auth: HTTPBasicAuth|str,
                        test_db: bool = True,
                        pcn_config_file: str='resources/pcn_config.json',
                        type: Literal['classic', 'ux', 'api']='ux',
@@ -155,7 +155,7 @@ class DataSource(ABC):
                     }
                 }
         """
-        if isinstance(key, HTTPBasicAuth) or self._check_api_key(key) or key is None:
+        if isinstance(key, HTTPBasicAuth) or self._check_api_key(key):# or key is None:
             return key
         if not os.path.exists(self._pcn_config_file):
             print(f'PCN config file "{self._pcn_config_file}" missing. Create one or enter your credentials now.')
@@ -197,3 +197,23 @@ class DataSourceResponse(ABC):
             c = csv.DictWriter(f, fieldnames=self._transformed_data[0].keys(), lineterminator='\n')
             c.writeheader()
             c.writerows(self._transformed_data)
+    
+    
+    def save_json(self, out_file):
+        if not getattr(self, '_transformed_data', []):
+            raise PlexResponseError(f'{type(self).__name__} has no transformed data to save.')
+        with open(out_file, 'w+', encoding='utf-8') as f:
+            f.write(json.dumps(self._transformed_data, indent=4))
+
+
+    def get_response_attribute(self, attribute, preserve_list=False, **kwargs):
+        if not kwargs:
+            attr_list = [item.get(attribute) for item in self._transformed_data]
+        else:
+            filter_criteria = kwargs
+            attr_list = []
+            for item in self._transformed_data:
+                if all(item.get(k) == v for k, v in filter_criteria.items()):
+                    attr_list.append(item.get(attribute))
+        return attr_list[0] if len(attr_list) == 1 and not preserve_list else attr_list
+    get_attribute = get_response_attribute

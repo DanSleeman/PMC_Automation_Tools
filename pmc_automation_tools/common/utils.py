@@ -4,7 +4,7 @@ import sys
 import json
 from warnings import warn
 import logging
-
+DEFAULT_FORMATTER = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 def debug_logger(level=logging.NOTSET):
     logger = logging.getLogger(__name__)
     FORMAT = "[%(asctime)s][%(filename)s:%(lineno)s][%(funcName)20s()] %(message)s"
@@ -70,7 +70,7 @@ def create_batch_folder(root='', batch_code=None, include_time=False, test=False
     os.makedirs(batch_folder, exist_ok=True)
     return batch_folder
 def setup_logger(name, log_file='log.log', file_format='DAILY',
-                     level=logging.DEBUG, formatter=None, root_dir=None):
+                     level=logging.DEBUG, formatter=DEFAULT_FORMATTER, root_dir=None):
     """
     To setup as many loggers as you want.
 
@@ -79,8 +79,6 @@ def setup_logger(name, log_file='log.log', file_format='DAILY',
 
     Default formatter %(asctime)s - %(name)s - %(levelname)s - %(message)s
     """
-    if formatter == None:
-        formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     _name = str(name)
     _file_format = str(file_format).upper()
     today = datetime.now()
@@ -109,6 +107,6 @@ def read_updated(in_file):
             updated_records = json.load(f)
     return updated_records or []
 
-def save_updated(in_file, dict):
+def save_updated(in_file, dict_obj):
     with open(in_file, 'w+', encoding='utf-8') as f:
-        f.write(json.dumps(dict, indent=4))
+        f.write(json.dumps(dict_obj, indent=4))
