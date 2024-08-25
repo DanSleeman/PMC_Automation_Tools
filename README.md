@@ -66,7 +66,11 @@ In order to make classic SOAP calls, you will also need the WSDL files from Plex
 
 They do not expose their WSDL URL anymore, but the files are on the community.
 
+## Installation
 
+```bash
+pip install pmc-automation-tools
+```
 
 ## Utilities
 
