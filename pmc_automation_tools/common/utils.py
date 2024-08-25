@@ -14,11 +14,11 @@ def debug_logger(level=logging.NOTSET):
 
 
 def frozen_check():
-    '''
+    """
     Checks the running script to see if it is compiled to a single exe.
     If compiled, the resources will be stored in a temp folder.
     If not, then they will be in the script's working directory.
-    '''
+    """
     if getattr(sys, 'frozen', False):
     # Running in a bundle
         bundle_dir = sys._MEIPASS # pylint: disable=no-member
@@ -44,17 +44,19 @@ def debug_dump_variables(obj):
 def get_case_insensitive_key_value(input_dict, key):
     return next((value for dict_key, value in input_dict.items() if dict_key.lower() == key.lower()), None)
 
-def create_batch_folder(root='', batch_code=None, include_time=False, test=False):
+def create_batch_folder(root='', batch_code=None, include_time=False, test=False) -> str:
     """
     Used to set up a batch folder to store any log files or screenshots during an automation run.
     
     Parameters:
+
     - root: The root directory where the batch folder will be created.
-    - batch_code: Optional batch code to use instead of generated one.
+    - batch_code: Optional batch code to use instead of generated one. Overrides include_time parameter.
     - include_time: If True, appends the current time to the batch code.
     - test: If True, uses 'TEST' for the batch folder path; otherwise, uses 'PROD'.
 
     Returns:
+    
     - The path to the created batch folder.
     """
     if batch_code and include_time:
@@ -70,14 +72,20 @@ def create_batch_folder(root='', batch_code=None, include_time=False, test=False
     os.makedirs(batch_folder, exist_ok=True)
     return batch_folder
 def setup_logger(name, log_file='log.log', file_format='DAILY',
-                     level=logging.DEBUG, formatter=DEFAULT_FORMATTER, root_dir=None):
+                     level=logging.DEBUG, formatter=DEFAULT_FORMATTER, root_dir=None) -> logging.Logger:
     """
-    To setup as many loggers as you want.
+    Setup a logging file.
 
-    The log file name will have the date pre-pended to whatever is added as the
-    log file name
+    Parameters:
 
-    Default formatter %(asctime)s - %(name)s - %(levelname)s - %(message)s
+    - name: logger name
+    - log_file: filename for the log file.
+    - file_format: "DAILY" | "MONTHLY" | "". Will be combined with the log_file filename provided.
+    - level: log level for the logger. logging module levels.
+    - formatter: logging formatter
+    - root_dir: root directory to store the log file
+
+    Default formatter: %(asctime)s - %(name)s - %(levelname)s - %(message)s
     """
     _name = str(name)
     _file_format = str(file_format).upper()
@@ -101,12 +109,32 @@ def setup_logger(name, log_file='log.log', file_format='DAILY',
     return logger
 
 def read_updated(in_file):
+    
+    """
+    Read in a json file of already updated records.
+
+    Parameters:
+    
+    - in_file: file containing the data to read.
+
+    Returns:
+
+    - json object or empty list
+    """
     updated_records = []
     if os.path.exists(in_file):
         with open(in_file, 'r', encoding='utf-8') as f:
             updated_records = json.load(f)
     return updated_records or []
 
-def save_updated(in_file, dict_obj):
+def save_updated(in_file, obj):
+    """
+    Save a json file containing a list of already processed records.
+
+    Parameters:
+    
+    - in_file: file to use to save
+    - obj: json object to write to file. Typically a list containing dictionaries.
+    """
     with open(in_file, 'w+', encoding='utf-8') as f:
-        f.write(json.dumps(dict_obj, indent=4))
+        f.write(json.dumps(obj, indent=4))

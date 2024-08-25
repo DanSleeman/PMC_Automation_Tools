@@ -44,15 +44,6 @@ FROM Plexus_Control_v_Customer_Group_Member P
 
 Press OK to select the csv file.'''
 class ClassicDriver(PlexDriver):
-    """
-    Classic Unique requirements
-    pcn_file required
-    url parts different
-    need csv_to_json function
-
-    login uniqueness
-
-    """
     def __init__(self, *args, **kwargs):
         super().__init__(environment='classic', *args, **kwargs)
         for k, v in kwargs.items():
@@ -76,28 +67,30 @@ class ClassicDriver(PlexDriver):
             self.pcn_dict = json.load(pcn_config)
 
     def _csv_to_json(self, csv_file):
-            '''
-            Function to take a csv file from Plex and create a
-            
-            PCN JSON file that can be used to log into specific PCNs
-                if the user has multiple PCN access.
-            
-            This should only be called on initialization if
-                the pcn.json file does not exist yet.
-            
-            Only required for classic logins.
-            '''
-            _pcn_dict = {}
-            with open(csv_file, 'r', encoding='utf-8-sig') as c:
-                r = csv.DictReader(c)
-                for row in r:
-                    if not row:
-                        continue
-                    _pcn_dict[get_case_insensitive_key_value(row, 'plexus_customer_no')] = get_case_insensitive_key_value(row, 'plexus_customer_name')
-            if not os.path.exists('resources'):
-                os.mkdir('resources')
-            with open(os.path.join('resources', 'pcn.json'), 'w+', encoding='utf-8') as j:
-                j.write(json.dumps(_pcn_dict, indent=4, ensure_ascii=False))
+        """Function to take a csv file from Plex and create a
+        
+        PCN JSON file that can be used to log into specific PCNs
+            if the user has multiple PCN access.
+        
+        This should only be called on initialization if
+            the pcn.json file does not exist yet.
+        
+        Only required for classic logins.
+
+        Args:
+            csv_file (str): path to the csv file generated from the SQL development environment.
+        """
+        _pcn_dict = {}
+        with open(csv_file, 'r', encoding='utf-8-sig') as c:
+            r = csv.DictReader(c)
+            for row in r:
+                if not row:
+                    continue
+                _pcn_dict[get_case_insensitive_key_value(row, 'plexus_customer_no')] = get_case_insensitive_key_value(row, 'plexus_customer_name')
+        if not os.path.exists('resources'):
+            os.mkdir('resources')
+        with open(os.path.join('resources', 'pcn.json'), 'w+', encoding='utf-8') as j:
+            j.write(json.dumps(_pcn_dict, indent=4, ensure_ascii=False))
 
     def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception=False):
         return super().wait_for_element(selector, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=ClassicPlexElement)
@@ -105,17 +98,16 @@ class ClassicDriver(PlexDriver):
     def wait_for_gears(self, loading_timeout=10):
         super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
 
-    def click_button(self, button_text, driver=None):
-        """
+    def click_button(self, button_text:str, driver:'ClassicPlexElement'=None):
+        """Click on a button.
+
         Classic buttons have two different types of buttons.
-        1. buttons using a/span tags
-        2. buttons made of ul/li tags
+            - buttons using a/span tags
+            - buttons made of ul/li tags
 
-        Parameters:
-
-        - name: Text of the button to click
-        - driver: webdriver root to use if different than default
-
+        Args:
+            button_text (str): Text matching the button to click
+            driver (ClassicPlexElement, optional): The WebDriver to use as a root for searching for the button. Defaults to None.
         """
         driver = driver or self.driver
         # Elements with <a><span> button structure
@@ -131,16 +123,18 @@ class ClassicDriver(PlexDriver):
 
 
     def login(self, username, password, company_code, pcn, test_db=True, headless=False):
-        """
-        set variables for url
-        initialize parent class function
-            chrome check
-            download chromedriver
-        classic popup handle
-        pcn select
-        token set
-        pcn switch (first login)
-        
+        """Log in to Plex
+
+        Args:
+            username (str): Plex username
+            password (str): Plex password
+            company_code (str): Plex company code (No longer relevant)
+            pcn (str): PCN number
+            test_db (bool, optional): Determines if logging in to the test database. Defaults to True.
+            headless (bool, optional): Run in headless mode. Defaults to False.
+
+        Returns:
+            tuple: WebDriver and combine url for navigating to other screens.
         """
         self._set_login_vars()
         super().login(username, password, company_code, pcn, test_db, headless)
@@ -160,6 +154,11 @@ class ClassicDriver(PlexDriver):
         super()._set_login_vars()
 
     def _classic_popup_handle(self):
+        """Deal with the browser popup that occurs after logging in to Plex classic.
+
+        Raises:
+            LoginError: If there is any credential issues, the window will not appear.
+        """
         main_window_handle = self.driver.current_window_handle
         signin_window_handle = None
         timeout_signin = 30
@@ -216,13 +215,19 @@ class ClassicDriver(PlexDriver):
             return False
 
 
-    def token_get(self):
+    def token_get(self) -> str:
+        """Sets self.url_comb for current token value.
+
+        Returns:
+            str: Plex URL combination containing token.
+        """
         url = self.driver.current_url
         url_split = url.split('/')
         url_proto = url_split[0]
         url_domain = url_split[2]
         self.url_token = url_split[3]
         self.url_comb = f'{url_proto}//{url_domain}/{self.url_token}'
+        return self.url_comb
 
 class ClassicPlexElement(PlexElement):
     def __init__(self, webelement, parent):

@@ -11,6 +11,7 @@ from zeep.helpers import serialize_object
 SOAP_TEST = 'https://testapi.plexonline.com/Datasource/service.asmx'
 SOAP_PROD = 'https://api.plexonline.com/Datasource/service.asmx'
 class ClassicDataSourceInput(DataSourceInput):
+    """Input object that stores the attributes for building the proper request format."""
     def __init__(self, data_source_key: int, *args, delimeter='|', **kwargs):
         self._delimeter = delimeter
         super().__init__(data_source_key, *args, type='classic', **kwargs)
@@ -27,27 +28,27 @@ class ClassicDataSource(DataSource):
                  test_db: bool = True,
                  pcn_config_file: str='resources/pcn_config.json',
                  **kwargs):
-        """
-        Parameters:
-        - wsdl: path
-            - Path to the wsdl file. Plex restricts access to their wsdl URL and these files can be found on the community.
+        """Data Source object for Classic SOAP web service
 
-        - auth: HTTPBasicAuth | str, optional
-            - HTTPBasicAuth object
-            - API Key as a string
-            - PCN Reference key for getting the username/password in a json config file.
-            
-        - test_db: bool, optional
-            - Use test or production database
-        
-        - pcn_config_file: str, optional
-            - Path to JSON file containing username/password credentials for HTTPBasicAuth connections.
+        Args:
+            auth (HTTPBasicAuth | str): Authentication for web service account
+            wsdl (str): path to the SOAP wsdl file
+            test_db (bool, optional): Connect to the test api URL. Defaults to True.
+            pcn_config_file (str, optional): path to the web service credential file. Defaults to 'resources/pcn_config.json'.
         """
         super().__init__(*args, auth=auth, test_db=test_db, pcn_config_file=pcn_config_file, type='classic', **kwargs)
         self._wsdl = wsdl
 
 
-    def call_data_source(self, query:ClassicDataSourceInput):
+    def call_data_source(self, query:ClassicDataSourceInput) -> 'ClassicDataSourceResponse':
+        """Triggers the data source request.
+
+        Args:
+            query (ClassicDataSourceInput): object containing the input details
+
+        Returns:
+            ClassicDataSourceResponse: ClassicDataSourceResponse object
+        """
         session = requests.Session()
         session.auth = self._auth
         client = Client(wsdl=self._wsdl, transport=Transport(session=session))

@@ -96,6 +96,28 @@ Parameters
 * formatter - logging formatter
 * root_dir - root directory to store the log file
 
+### read_updated
+
+Read in a json file of already updated records.
+
+Useful to skip over anything processed by previous runs.
+
+Parameters:
+* in_file - file containing the data to read.
+
+Returns:
+* json object or empty list
+
+### save_updated
+
+Save a json file containing a list of already processed records.
+
+Useful when dealing with errors and re-running data sources from an un-changed SQL query.
+
+Parameters:
+* in_file - file to use to save
+* obj - json object to write to file. Typically a list containing dictionaries.
+
 ## PlexDriver Functions
 
 Sub classes `UXDriver` and `ClassicDriver`
@@ -369,7 +391,7 @@ This is useful when dealing with CSV input files since the attributes will all b
 
 ### get_to_update
 
-Takes a `UXDataSourceResponse` object to update the attributes to match what was returned.
+Adjusts the attribute types to match the expected types of the data source.
 
 This is useful for required fields from a data source which would be changed if you don't provide the input.
 

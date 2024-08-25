@@ -83,26 +83,6 @@ class UXDriver(PlexDriver):
 
     def wait_for_gears(self, loading_timeout=10):
         super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
-        # """
-        # Wait for the spinning gears image to appear and wait for it to dissappear.
-
-        # This should be called after searching or updating a screen.
-        
-        # Essentially any time you are clicking a button which would cause the page to load.
-
-        # The gears sometimes dissappear quicker than can be detected. 
-        #     If the gears are not detected at the begining, the end timeout is shorter.
-
-        # Parameters
-        # - loading_timeout: how long to wait until the gears disappear once visible.
-        #     Use this if the screen usually takes a long time to load/search.
-        # """
-        # gears_visible = False
-        # gears_visible = self.wait_for_element(UX_PLEX_GEARS_SELECTOR, type=VISIBLE, timeout=1, ignore_exception=True)
-        # timeout = loading_timeout if gears_visible else 1
-        # self.debug_logger.debug(f'Timeout for invisible is {timeout}.')
-        # self.wait_for_element(UX_PLEX_GEARS_SELECTOR, type=INVISIBLE, timeout=timeout, ignore_exception=True)
-
 
     def click_button(self, button_text, driver=None):
         """
@@ -113,6 +93,7 @@ class UXDriver(PlexDriver):
         Can be used for Search buttons as well.
         
         Parameters:
+        
         - name: Text of the button to click
         - driver: webdriver root to use if different than default
 
@@ -145,8 +126,9 @@ class UXDriver(PlexDriver):
         Clicks on an action bar item.
 
         Parameters:
-            item - Text for the item to click
-            sub_item - Text for the item if it is within a dropdown from clicking the item first.
+        
+        - item: Text for the item to click
+        - sub_item: Text for the item if it is within a dropdown from clicking the item first.
         """
         action_bar = self.wait_for_element((By.CLASS_NAME, 'plex-actions'))
 

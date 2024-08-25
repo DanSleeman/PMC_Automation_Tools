@@ -62,11 +62,6 @@ _wait_until = {
 
 
 class PlexDriver(ABC):
-    """
-    Needs login details
-    chrome driver download
-    TODO - split functionality between classic and ux drivers with shared functionality
-    """
     def __init__(self, environment: Literal['ux', 'classic'], *args, driver_type: Literal['edge', 'chrome']='edge', **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -102,27 +97,24 @@ class PlexDriver(ABC):
         self.latest_driver_version_file = os.path.join(self.resource_path, 'driver_version.txt')
 
 
-    def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception: bool=False, element_class=None) -> 'PlexElement':
-        """
-        Wait until an element meets specified criteria.
+    def wait_for_element(self, selector:tuple[str, str], driver=None, timeout:int=15, type=VISIBLE, ignore_exception: bool=False, element_class:object=None) -> 'PlexElement':
+        """Wait until an element meets specified criteria.
 
         Wrapper for Selenium WebDriverWait function for common Plex usage.
 
-        Parameters
+        Args:
+            selector (tuple[str, str]): Selenium style element selector e.g. (By.NAME, 'ElementName')
+            driver (WebDriver|PlexElement, optional): root WebDriver to use for locating the element. Defaults to None.
+            timeout (int, optional): Time to wait until timeout is triggered. Defaults to 15.
+            type (str, optional): Type of wait to be performed. Defaults to VISIBLE.
+            ignore_exception (bool, optional): Don't raise an exception if the timeout is reached. Defaults to False.
+            element_class (object, optional): class of the WebElement to return. Defaults to None.
 
-            - selector: Element selector to wait for
-            - driver: root WebDriver to use for locating the element
-            - timeout: How long to wait until raising an exception
-            - type: Type of wait to be used
-                - VISIBLE
-                - INVISIBLE
-                - CLICKABLE
-                - EXISTS: Just return the element with no waiting.
-            - ignore_exception: Do not raise exception if element isn't located.
+        Raises:
+            exception: re-raises exception from failing to meet the expected condition
 
-        Returns
-
-            - PlexElement object
+        Returns:
+            PlexElement: PlexElement based on search criteria
         """
         try:
             driver = driver or self.driver
@@ -178,20 +170,18 @@ class PlexDriver(ABC):
             raise UpdateError(banner_text)
 
     def wait_for_gears(self, selector, loading_timeout=10):
-        """
-        Wait for the spinning gears image to appear and wait for it to dissappear.
+        """Wait for the spinning gears image to appear and disappear
 
         This should be called after searching or updating a screen.
-        
+
         Essentially any time you are clicking a button which would cause the page to load.
 
         The gears sometimes dissappear quicker than can be detected. 
             If the gears are not detected at the begining, the end timeout is shorter.
 
-        Parameters
-
-            - loading_timeout: how long to wait until the gears disappear once visible.
-                Use this if the screen usually takes a long time to load/search.
+        Arg:
+            selector (tuple[str, str]): Selenium style element selector e.g. (By.NAME, 'ElementName')
+            loading_timeout (int, optional): Time to wait until the gears disappear after being detected. Defaults to 10.
         """
         gears_visible = False
         gears_visible = self.wait_for_element(selector, type=VISIBLE, timeout=1, ignore_exception=True)
@@ -200,27 +190,16 @@ class PlexDriver(ABC):
         self.wait_for_element(selector, type=INVISIBLE, timeout=timeout, ignore_exception=True)
 
     def login(self, username, password, company_code, pcn, test_db=True, headless=False):
+        """Log in to Plex
+
+        Args:
+            username (str): Plex username
+            password (str): Plex password
+            company_code (str): Plex company code
+            pcn (str): PCN number
+            test_db (bool, optional): Log in to the test database. Defaults to True.
+            headless (bool, optional): Run in headless mode. Defaults to False.
         """
-        Log into Plex.
-
-        Downloads the latest chromedriver if different than the latest version available.
-
-        parameters
-
-            : username - Username
-            : password - Password
-            : company_code - Login company code used
-            : pcn - home PCN for the user. If the user account does not have multiple PCNs, this wouldn't be used.
-            : db - Plex database. Test or Prod
-            : headless - Launch chrome in headless mode. Note: This does not behave well with UX screens.
-        
-        returns
-
-            : driver - WebDriver for main operations
-            : url_comb - combined URL part for the environment (UX, Classic)
-            : token - Session token from URL
-        """
-        # self._chrome_check()
         self.test_db = test_db
         self.batch_folder = create_batch_folder(test=self.test_db)
         self.pcn = pcn
@@ -298,10 +277,12 @@ class PlexDriver(ABC):
 
 
 
-    def _download_edge_driver(self, version=None):
-        '''
-        Downloads the EdgeDriver that will allow Selenium to function.
-        '''
+    def _download_edge_driver(self, version:str=None):
+        """Downloads the EdgeDriver that will allow Selenium to function.
+
+        Args:
+            version (str, optional): edgedriver version if different than latest. Defaults to None.
+        """
         text_path = os.path.join(self.resource_path, 'edgedriver.txt')
         zip_path = os.path.join(self.resource_path, 'edgedriver.zip')
         edgedriver_url = None
@@ -328,10 +309,12 @@ class PlexDriver(ABC):
             self.debug_logger.debug(f'Extracting EdgeDriver to: {self.resource_path}')
             zip_ref.extractall(self.resource_path)
             
-    def _download_chrome_driver(self, version=None):
-        '''
-        Downloads the chromedriver that will allow selenium to function.
-        '''
+    def _download_chrome_driver(self, version:str=None):
+        """Downloads the ChromeDriver that will allow Selenium to function.
+
+        Args:
+            version (str, optional): chromedriver version if different than latest. Defaults to None.
+        """
         text_path =os.path.join(self.resource_path, 'chromedriver.txt')
         zip_path =os.path.join(self.resource_path, 'chromedriver.zip')
         chromedriver_url = None
@@ -420,63 +403,6 @@ class PlexDriver(ABC):
         service = Service(executable_path=executable_path)
         return webdriver.Chrome(service=service, options=chrome_options)
 
-    def _classic_popup_handle(self):
-        main_window_handle = None
-        while not main_window_handle:
-            self.debug_logger.debug('looking for main window')
-            main_window_handle = self.driver.current_window_handle
-        signin_window_handle = None
-        timeout_signin = 30
-        timeout_start = time.time()
-        login_attempt = 0
-        while not signin_window_handle and time.time() < timeout_start + timeout_signin:
-            self.debug_logger.debug(f'Searching for classic signin window')
-            for handle in self.driver.window_handles:
-                if handle != main_window_handle:
-                    self.debug_logger.debug(f'Found classic login window')
-                    signin_window_handle = handle
-                    break
-                else:
-                    timeout_signin -= 1
-                    login_attempt += 1
-                    time.sleep(1)
-                    self.debug_logger.debug(f'Login attempt: {login_attempt}')
-        if not signin_window_handle:
-            raise LoginError('Failed to find Plex signon window. Please validate login credentials and try again.', environment = self.environment, db= self.db, pcn= self.pcn_name, message='Failed to find Plex signon window. Please validate login credentials and try again.')
-        self.driver.switch_to.window(signin_window_handle)
-
-
-    def _classic_pcn_switch(self, pcn=None):
-        if not pcn:
-            pcn = self.pcn
-        _pcn_name = self.pcn_dict[pcn]
-        _url = self.driver.current_url
-        if self.single_pcn:
-            warn(f'This account only has access to one PCN.', loglevel=2)
-            return
-        if not 'MENUCUSTOMER.ASPX' in _url.upper() and self.first_login:
-            self.debug_logger.debug(f'Single PCN account detected.')
-            self.single_pcn = True
-            self.first_login = False
-            return (self.driver, self.url_comb, "None")
-        if not self.single_pcn and not self.first_login:
-            self.driver.get(f'{self.url_comb}/Modules/SystemAdministration/MenuSystem/MenuCustomer.aspx')
-        try:
-            try:
-                self.driver.find_element(By.XPATH, f'//img[@alt="{_pcn_name}"]').click()
-                self.debug_logger.debug(f'PCN found by logo text: {_pcn_name}.')
-            except NoSuchElementException: # PCN does not have a logo, find the URL link instead.
-                try:
-                    self.driver.find_element(By.XPATH, f'//*[contains(text(), "{_pcn_name}")]').click()
-                    self.debug_logger.debug(f'PCN found by link text: {_pcn_name}.')
-                except NoSuchElementException:
-                    raise LoginError(self.environment, self.db, _pcn_name, f'Unable to locate PCN. Verify you have access.')
-            finally:
-                self.first_login = False
-        except (IndexError, KeyError):
-            raise LoginError(self.environment, self.db, _pcn_name, 'PCN is not present in reference file. Verify pcn.json data.')
-
-
 
     @abstractmethod
     def token_get(self):...
@@ -500,26 +426,6 @@ class PlexElement(WebElement):
     Subclass of Selenium WebElement with specialized functions for Plex elements.
     """
     def __init__(self, webelement, parent):
-        """
-        Debug level from parent
-        Debug flag from parent ?
-        Driver from webelement
-        batch_folder from parent
-        screenshot_folder from parent
-
-        methods
-
-            wait for element
-            wait for gears
-            search for element
-            screenshot
-            sync checkbox
-            sync textbox
-
-        abstract methods
-            sync picker
-
-        """
         super().__init__(webelement._parent, webelement._id)
         self.debug = parent.debug
         self.debug_level = parent.debug_level
@@ -549,13 +455,11 @@ class PlexElement(WebElement):
         super().screenshot(filename)
 
     
-    def sync_checkbox(self, bool_state):
-        """
-        Sync a checkbox to the provided checked state.
+    def sync_checkbox(self, bool_state:bool|int):
+        """Sync a checkbox to the provided checked state
 
-        parameters
-
-            : bool_state - Checked state to make the checkbox.
+        Args:
+            bool_state (bool | int): Checkbox state to make the element.
         """
         if not type(bool_state) == bool:
             bool_state = bool(int(bool_state))
@@ -567,14 +471,12 @@ class PlexElement(WebElement):
             self.debug_logger.debug(f'{self.get_property("name")} - Checkbox state: {check_state} matches provided state: {bool_state}.')
 
 
-    def sync_textbox(self, text_content, clear=False):
-        """
-        Sync a textbox with the provided value.
+    def sync_textbox(self, text_content:str, clear:bool=False):
+        """Sync a textbox with the provided value
 
-        parameters
-
-            : text_content - Desired value for the text box
-            : clear - Clear out the text box if providing a blank text_content
+        Args:
+            text_content (str): Desired value for the text box
+            clear (bool, optional): Clear out the text box if sending an empty string. Defaults to False.
         """
         if not text_content and not clear:
             return

@@ -57,6 +57,19 @@ class UXDataSourceInput(DataSourceInput):
 
 
     def get_type(self, attribute):
+        """
+        Return the expected input type for the provided attribute.
+        
+        Expects a data source template file to be used during object creation.
+
+        Parameters:
+        
+        - attribute: Data source input name
+
+        Returns:
+        
+        - type of the attribute derived from the data source template file.
+        """
         return getattr(self, '__input_types__').get(attribute, None)
 
     def _xstr(self, s):
@@ -70,6 +83,9 @@ class UXDataSourceInput(DataSourceInput):
 
 
     def type_reconcile(self):
+        """
+        Adjusts the object attribute types to match the expected types of the data source.
+        """
         for k, v in vars(self).items():
             if k.startswith('_') or k not in self.__input_types__.keys() or v is None:
                 continue
@@ -85,7 +101,13 @@ class UXDataSourceInput(DataSourceInput):
             setattr(self, k, new_val)
 
 
-    def get_to_update(self, get_instance):
+    def get_to_update(self, get_instance:'UXDataSourceResponse'):
+        """
+        Adjusts the attribute types to match the expected types of the data source.
+
+        Parameters:
+        - get_instance: a UXDataSourceResponse object returned from a call to a 'get' type datasource.
+        """
         for k, v in vars(get_instance).items():
             setattr(self, k, v)
         for k in self.__input_types__.keys():
@@ -95,6 +117,11 @@ class UXDataSourceInput(DataSourceInput):
         self.purge_empty()
 
     def purge_empty(self):
+        """
+        Removes empty/Nonetype attributes from the input.
+
+        Additionally removes any attributes not existing in the input_types dictionary.
+        """
         super().purge_empty()
         purge_attrs = []
         for y in vars(self).keys():
@@ -112,7 +139,7 @@ class UXDataSource(DataSource):
         """
         Parameters:
 
-        - auth: HTTPBasicAuth | str, optional
+        - auth: HTTPBasicAuth | str
             - HTTPBasicAuth object
             - PCN Reference key for getting the username/password in a json config file.
             
@@ -132,19 +159,41 @@ class UXDataSource(DataSource):
         session.mount('https://', adapter)
         return session
     
-    def call_data_source(self, query:UXDataSourceInput):
+    def call_data_source(self, query:UXDataSourceInput) -> 'UXDataSourceResponse':
+        """
+        Call the UX data source.
+
+        Parameters:
+
+        - query: UXDataSourceInput object
+
+        Returns:
+
+        - UXDataSourceResponse object
+        """
         url = f'https://{self.url_db}cloud.plex.com/api/datasources/{query.__api_id__}/execute?format=2'
         session = self._create_session()
         response = session.post(url, json=query._query_string, auth=self._auth)
         json_data = response.json()
         return UXDataSourceResponse(query.__api_id__, **json_data)
     
-    def list_data_source_access(self, pcn:str =None, all_accounts=False):
+    def list_data_source_access(self, pcn:HTTPBasicAuth|str|list):
+        """
+        Get a list of data sources that are enabled for a specific account or any number of accounts.
+
+        Parameters:
+
+        - pcn: Authentication for the account(s)
+
+        Returns:
+
+        - UXDataSourceResponse object
+        """
         url = f'https://{self.url_db}cloud.plex.com/api/datasources/search?name='
         session = self._create_session()
         access_list = []
-        if all_accounts:
-            pcn_list = [pcn for pcn in self.launch_pcn_dict.keys()]
+        if isinstance(pcn, list):
+            pcn_list = pcn
         else:
             pcn_list = [pcn]
         for pcn in pcn_list:
@@ -155,7 +204,7 @@ class UXDataSource(DataSource):
                 ds['pcn'] = pcn
             access_list.append(j)
         all_datasources = list(chain.from_iterable(access_list))
-        return UXDataSourceResponse('all_access',rows=all_datasources)
+        return UXDataSourceResponse('access_list', rows=all_datasources)
 
 class UXDataSourceResponse(DataSourceResponse):
     def __init__(self, data_source_key, **kwargs):

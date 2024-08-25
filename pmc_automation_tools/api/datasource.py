@@ -33,7 +33,7 @@ class ApiDataSource(DataSource):
         """
         Parameters:
 
-        - auth: str, optional
+        - auth: str
             - API Key as a string
 
         - test_db: bool, optional

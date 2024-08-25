@@ -74,8 +74,9 @@ class DataSourceInput(ABC):
         """
         Will remove attributes from the class that are not needed.
 
-        :param *args: Any specific input name will be removed from the class
-        :param **kwargs: Can allow for keeping specific attributes when passed as a list using the "keep" kwarg.
+        Parameters:
+        - *args: Any specific input name will be removed from the class
+        - **kwargs: Can allow for keeping specific attributes when passed as a list using the "keep" kwarg.
         """
         if 'keep' in kwargs.keys():
         # if kwargs.get('keep'): # Can't use this method because an empty list is expected and evaluates false here.
@@ -111,10 +112,10 @@ class DataSource(ABC):
         """
         Parameters:
 
-        - auth: HTTPBasicAuth | str, optional
+        - auth: HTTPBasicAuth | str
             - HTTPBasicAuth object
             - API Key as a string
-            - PCN Reference key for getting the username/password in a json config file.
+            - PCN Reference key for getting the username/password stored in a json config file.
             
         - test_db: bool, optional
             - Use test or production database
@@ -137,10 +138,11 @@ class DataSource(ABC):
         """
         sets authentication for API calls.
 
-        :param key:
-            : HTTPBasicAuth object
-            : API Key as a string
-            : PCN Reference key for getting the username/password in a json config file.
+        Parameters:
+        - key:
+            - HTTPBasicAuth object
+            - API Key as a string
+            - PCN Reference key for getting the username/password in a json config file.
         
         If not sending an API Key or HTTPBasicAuth object, Expects a JSON file which holds the webservice credentials.
             .. code-block:: json
@@ -174,13 +176,6 @@ class DataSource(ABC):
 
 
 class DataSourceResponse(ABC):
-    """
-    shared functions
-        save_response_csv - will need to update the UX data source to properly format the data
-    shared attributes
-        data_source_key - Doesn't exist for new API responses
-
-    """
     def __init__(self, api_id, **kwargs):
         self.__api_id__ = api_id
         for key, value in kwargs.items():
@@ -191,6 +186,9 @@ class DataSourceResponse(ABC):
     def _format_response(self):...
 
     def save_csv(self, out_file):
+        """
+        Save the response object to a provided CSV file.
+        """
         if not getattr(self, '_transformed_data', []):
             raise PlexResponseError(f'{type(self).__name__} has no transformed data to save.')
         with open(out_file, 'w+', encoding='utf-8') as f:
@@ -200,13 +198,29 @@ class DataSourceResponse(ABC):
     
     
     def save_json(self, out_file):
+        """
+        Save the response object to a provided JSON file.
+        """
         if not getattr(self, '_transformed_data', []):
             raise PlexResponseError(f'{type(self).__name__} has no transformed data to save.')
         with open(out_file, 'w+', encoding='utf-8') as f:
             f.write(json.dumps(self._transformed_data, indent=4))
 
 
-    def get_response_attribute(self, attribute, preserve_list=False, **kwargs):
+    def get_response_attribute(self, attribute, preserve_list=False, **kwargs) -> list | str:
+        """
+        Extract the attribute from the formatted data in the response.
+
+        Parameters:
+
+        - attribute: attribute name from the response to return
+        - preserve_list: Pass true to retain a list of attributes even if a single item is found.
+        - kwargs: arbitrary number of attribute=value filters to use when searching for a specific attribute to return.
+
+        Returns:
+
+        - attribute(s) matching the criteria
+        """
         if not kwargs:
             attr_list = [item.get(attribute) for item in self._transformed_data]
         else:
