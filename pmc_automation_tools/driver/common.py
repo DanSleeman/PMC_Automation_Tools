@@ -224,16 +224,17 @@ class PlexDriver(ABC):
             id_box = self.wait_for_element((By.NAME, self.plex_log_id), type=CLICKABLE)
             id_box.send_keys(username)
             id_box.send_keys(Keys.TAB)
-            company_box = self.wait_for_element((By.NAME, self.plex_log_comp), type=CLICKABLE)
-            company_text = company_box.get_attribute('value')
-            if company_text != company_code:
-                self.debug_logger.info(f'Auto-populated company code: {company_text} does not match provided login credentials: {company_code}.')
+            company_box = self.wait_for_element((By.NAME, self.plex_log_comp), ignore_exception=True, type=CLICKABLE, timeout=5)
+            if company_box == self.driver.switch_to.active_element:
+                self.debug_logger.debug(f'Company box is active. Filling in with supplied data.')
                 company_box.click()
                 company_box.clear()
                 company_box.send_keys(company_code)
                 company_box.send_keys(Keys.TAB)
             pass_box = self.wait_for_element((By.NAME, self.plex_log_pass), type=CLICKABLE)
-            pass_box.send_keys(password)
+            if pass_box == self.driver.switch_to.active_element:
+                self.debug_logger.debug(f'Filling in password.')
+                pass_box.send_keys(password)
         else:
             self.debug_logger.debug(f'Plex IAM login screen detected.')
             id_box = self.driver.find_element(By.NAME, self.plex_log_id)

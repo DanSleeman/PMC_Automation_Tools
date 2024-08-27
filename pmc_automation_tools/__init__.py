@@ -10,7 +10,7 @@ from pmc_automation_tools.driver.common import (
     CLICKABLE,
     EXISTS
 )
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __all__ = [
     "UXDataSource",
     "UXDataSourceInput",
