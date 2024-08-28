@@ -322,14 +322,21 @@ class UXPlexElement(PlexElement):
                                     _cancel.click()
                                     raise NoRecordError(f'No records found for {text_content}')
                             for i in items:
-                                if i.text != text_content:
+                                item_columns = i.get_property('innerText').split('\t')
+                                if not any([c for c in item_columns if c == text_content]):
+                                # if i.text != text_content:
+                                    option_found = False
                                     continue
+                                option_found = True
                                 self.debug_logger.info(f'Found matching item with text {i.text}.')
                                 i.click()
                                 if multi:
                                     self.debug_logger.info(f'Multi-picker, clicking ok on the popup window.')
                                     self.click_button('Ok', driver=popup)
                                     self.debug_logger.info(f'Multi-picker, clicked ok on the popup window.')
-                                    
+                                break
+                            if not option_found:
+                                raise NoSuchElementException(f'No matching elements found for {text_content}')
                         except (TimeoutException, NoSuchElementException) as e:
                             self.debug_logger.info(f'No matching elements found for {text_content}')
+                            raise
