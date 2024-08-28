@@ -55,10 +55,10 @@ class UXDriver(PlexDriver):
             setattr(self, k, v)
     def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception=False):
         return super().wait_for_element(selector, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=UXPlexElement)
-    def wait_for_banner(self) -> None:
+    def wait_for_banner(self, timeout=10, ignore_exception=False) -> None:
         try:
             loop = 0
-            while loop <= 10:
+            while loop <= timeout:
                 banner = self.wait_for_element(BANNER_SELECTOR)
                 banner_class = banner.get_attribute('class')
                 banner_type = next((BANNER_CLASSES[c] for c in BANNER_CLASSES if c in banner_class), None)
@@ -68,8 +68,12 @@ class UXDriver(PlexDriver):
                 time.sleep(1)
                 loop += 1
             else:
+                if ignore_exception:
+                    return None
                 raise UpdateError(f'Unexpected banner type detected. Found {banner_class}. Expected one of {list(BANNER_CLASSES.keys())}')
         except (TimeoutException, NoSuchElementException, StaleElementReferenceException):
+            if ignore_exception:
+                return None
             raise UpdateError('No banner detected.')
 
 

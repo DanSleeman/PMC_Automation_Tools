@@ -16,9 +16,12 @@ This library serves two main functions.
 - [Plex Manufacturing Cloud (PMC) Automation Tools](#plex-manufacturing-cloud-pmc-automation-tools)
   - [Table of Contents](#table-of-contents)
   - [Requirements](#requirements)
+  - [Installation](#installation)
   - [Utilities](#utilities)
     - [create\_batch\_folder](#create_batch_folder)
     - [setup\_logger](#setup_logger)
+    - [read\_updated](#read_updated)
+    - [save\_updated](#save_updated)
   - [PlexDriver Functions](#plexdriver-functions)
     - [wait\_for\_element](#wait_for_element)
     - [wait\_for\_gears](#wait_for_gears)
@@ -181,6 +184,25 @@ Waits for the banner to appear after a record is updated or if there is an error
 
 Currently only supported in `UXDriver` class.
 
+Parameters
+* timeout - how long to wait for the banner. Default 10 seconds
+* ignore_exception - ignore exception raised when an expected banner class is not detected. Default False
+
+timeout and ignore_exception can be used in some cases.
+
+EX:
+
+The successful update takes a long time, but there may be some initial validation for required fields which make the update fail.
+
+You can then continue to another record after a short time, but capture any error/warnings.
+
+```python
+ux.click_button('Apply')
+try:
+    ux.wait_for_banner(timeout=1, ignore_exception=True)
+except UpdateError as e: # UpdateError will only be triggered if a banner with a warning/error banner type is detected before the timeout.
+    logger.warning(f'Error making the update. {e.clean_message}') # e.clean_message will show the banner text without any newline characters.
+```
 ### login
 
 Log in to Plex with the provided credentials.
