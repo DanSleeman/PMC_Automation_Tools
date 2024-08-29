@@ -1,3 +1,9 @@
+# 0.1.4 [2024-08-29]
+
+## Fixed
+
+Fixed bug in `driver.ux.driver.click_action_bar_item()`
+
 # 0.1.3 [2024-08-28]
 
 ## Fixed

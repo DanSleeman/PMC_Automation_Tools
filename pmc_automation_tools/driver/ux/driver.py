@@ -154,10 +154,10 @@ class UXDriver(PlexDriver):
 
         # Handle sub_item or main item click
         if sub_item:
-            self.self.debug_logger.debug("Clicking sub-item.")
+            self.debug_logger.debug("Clicking sub-item.")
             self._click_sub_item(action_bar, item, sub_item)
         else:
-            self.self.debug_logger.debug("Clicking main item.")
+            self.debug_logger.debug("Clicking main item.")
             action_item = self.wait_for_element((By.LINK_TEXT, item), type=CLICKABLE)
             action_item.click()
 
