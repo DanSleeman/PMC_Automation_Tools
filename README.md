@@ -31,11 +31,15 @@ This library serves two main functions.
     - [pcn\_switch](#pcn_switch)
     - [click\_button](#click_button)
     - [click\_action\_bar\_item](#click_action_bar_item)
+  - [GenericDriver Functions](#genericdriver-functions)
+    - [launch](#launch)
   - [PlexElement Functions](#plexelement-functions)
     - [sync\_picker](#sync_picker)
     - [sync\_textbox](#sync_textbox)
     - [sync\_checkbox](#sync_checkbox)
     - [screenshot](#screenshot)
+  - [GenericElement Functions](#genericelement-functions)
+    - [sync\_picker](#sync_picker-1)
   - [DataSource Functions](#datasource-functions)
     - [set\_auth](#set_auth)
     - [call\_data\_source](#call_data_source)
@@ -292,6 +296,17 @@ Parameters
 * sub_item - Text for the sub item if the item is for a drop-down action
 
 If the screen is too small, or there are too many action bar items, the function will automatically check under the "More" drop-down list for the item.
+## GenericDriver Functions
+
+Intended for use with non-Plex websites with similar methods available for use.
+
+### launch
+
+Configures and launches a webdriver session and navigates to the URL provided.
+
+Parameters:
+
+* url - Where to go when launching the webdriver
 
 ## PlexElement Functions
 
@@ -321,6 +336,15 @@ Updates a checkbox state to match the provided state.
 Wrapper around Selenium's screenshot functionality.
 
 Saves a screenshot of the element to the screenshots folder using the element's ID and name.
+## GenericElement Functions
+
+### sync_picker
+
+Basic wrapper around Selenium's Select class.
+
+Parameters:
+* sync_value - str or int - value to sync to the Select object. int input will select based on index.
+* text - bool - True for syncing with visible text. False for value
 
 ## DataSource Functions
 

@@ -1,3 +1,23 @@
+# 0.1.5 [2024-08-30]
+
+## Fixed
+
+Fixed bug in `driver.ux.driver.click_button()`
+
+* Type hint caused import error due to incorrect syntax
+
+## Added
+
+Added `driver.generic.GenericDriver` which can be used for basic website automation.
+
+* `launch()` method only takes url parameter for launching a browser.
+
+## Changed
+
+Changed attribute assignment in `driver.common.PlexElement`
+
+* Now uses `getattr()` method to prevent errors when no attributes exist
+
 # 0.1.4 [2024-08-29]
 
 ## Fixed

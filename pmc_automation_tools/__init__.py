@@ -4,13 +4,15 @@ from pmc_automation_tools.api.datasource import ApiDataSource, ApiDataSourceInpu
 from pmc_automation_tools.common.utils import debug_logger, create_batch_folder, setup_logger, read_updated, save_updated
 from pmc_automation_tools.driver.ux.driver import UXDriver
 from pmc_automation_tools.driver.classic.driver import ClassicDriver
+from pmc_automation_tools.driver.generic import GenericDriver
 from pmc_automation_tools.driver.common import (
     VISIBLE,
     INVISIBLE,
     CLICKABLE,
     EXISTS
 )
-__version__ = "0.1.4"
+
+__version__ = "0.1.5"
 __all__ = [
     "UXDataSource",
     "UXDataSourceInput",
@@ -28,5 +30,6 @@ __all__ = [
     "VISIBLE",
     "INVISIBLE",
     "CLICKABLE",
-    "EXISTS"
+    "EXISTS",
+    "GenericDriver"
 ]

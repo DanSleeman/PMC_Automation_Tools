@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 from pmc_automation_tools.driver.common import (
     PlexDriver,
     PlexElement,
@@ -41,7 +41,7 @@ class UXDriver(PlexDriver):
         for k, v in kwargs.items():
             setattr(self, k, v)
     
-    def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception=False):
+    def wait_for_element(self, selector, driver:Union['UXDriver','UXPlexElement'], timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
         return super().wait_for_element(selector, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=UXPlexElement)
     
     def wait_for_banner(self, timeout:int=10, ignore_exception:bool=False) -> None:
@@ -85,10 +85,10 @@ class UXDriver(PlexDriver):
             raise UpdateError(banner_text)
     
 
-    def wait_for_gears(self, loading_timeout=10):
+    def wait_for_gears(self, loading_timeout=10) -> None:
         super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
 
-    def click_button(self, button_text:str, driver:'UXDriver'|'UXPlexElement'=None):
+    def click_button(self, button_text:str, driver:Union['UXDriver','UXPlexElement']=None) -> None:
         """Clicks a standard button with matching text.
 
         Args:
@@ -119,7 +119,7 @@ class UXDriver(PlexDriver):
                 b.click()
                 break
             
-    def click_action_bar_item(self, item:str, sub_item:str=None):
+    def click_action_bar_item(self, item:str, sub_item:str=None) -> None:
         """Clicks on an action bar item.
 
         Args:
@@ -183,7 +183,7 @@ class UXDriver(PlexDriver):
         super()._set_login_vars()
 
 
-    def token_get(self):
+    def token_get(self) -> str:
         url = self.driver.current_url
         url_split = url.split('/')
         url_proto = url_split[0]
@@ -219,7 +219,7 @@ class UXPlexElement(PlexElement):
         super().__init__(webelement, parent)
 
 
-    def sync_picker(self, text_content:str, clear:bool=False, date:bool=False, column_delimiter:str='\t'):
+    def sync_picker(self, text_content:str, clear:bool=False, date:bool=False, column_delimiter:str='\t') -> None:
         """Sync the picker element to the provided value.
 
         Args:

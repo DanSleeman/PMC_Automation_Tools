@@ -428,11 +428,11 @@ class PlexElement(WebElement):
     """
     def __init__(self, webelement, parent):
         super().__init__(webelement._parent, webelement._id)
-        self.debug = parent.debug
-        self.debug_level = parent.debug_level
+        self.debug = getattr(parent, 'debug', None)
+        self.debug_level = getattr(parent, 'debug_level', None)
         self.debug_logger = debug_logger(self.debug_level)
-        self.batch_folder = parent.batch_folder
-        self.test_db = parent.test_db
+        self.batch_folder = getattr(parent, 'batch_folder', None)
+        self.test_db = getattr(parent, 'test_db', None)
         self.driver = webelement._parent
         self.wait_for_element = parent.wait_for_element
         self.click_button = parent.click_button
