@@ -92,8 +92,8 @@ class ClassicDriver(PlexDriver):
         with open(os.path.join('resources', 'pcn.json'), 'w+', encoding='utf-8') as j:
             j.write(json.dumps(_pcn_dict, indent=4, ensure_ascii=False))
 
-    def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception=False):
-        return super().wait_for_element(selector, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=ClassicPlexElement)
+    def wait_for_element(self, selector, *args, driver=None, timeout=15, type=VISIBLE, ignore_exception=False):
+        return super().wait_for_element(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=ClassicPlexElement)
 
     def wait_for_gears(self, loading_timeout=10):
         super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)

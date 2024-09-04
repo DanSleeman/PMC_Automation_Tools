@@ -9,7 +9,7 @@ import os
 import time
 import json
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, Union
 from pathlib import Path
 
 from selenium import webdriver
@@ -97,13 +97,14 @@ class PlexDriver(ABC):
         self.latest_driver_version_file = os.path.join(self.resource_path, 'driver_version.txt')
 
 
-    def wait_for_element(self, selector:tuple[str, str], driver=None, timeout:int=15, type=VISIBLE, ignore_exception: bool=False, element_class:object=None) -> 'PlexElement':
+    def wait_for_element(self, selector:Union[tuple[str, str], str], *args, driver=None, timeout:int=15, type=VISIBLE, ignore_exception: bool=False, element_class:object=None) -> 'PlexElement':
         """Wait until an element meets specified criteria.
 
         Wrapper for Selenium WebDriverWait function for common Plex usage.
 
         Args:
-            selector (tuple[str, str]): Selenium style element selector e.g. (By.NAME, 'ElementName')
+            selector (tuple[str, str], str): Selenium style element selector e.g. wait_for_element((By.NAME, 'ElementName')).
+            *args: If sending a str as the selector, expects the value as an additional positional argument. e.g. wait_for_element(By.NAME, 'ElementName').
             driver (WebDriver|PlexElement, optional): root WebDriver to use for locating the element. Defaults to None.
             timeout (int, optional): Time to wait until timeout is triggered. Defaults to 15.
             type (str, optional): Type of wait to be performed. Defaults to VISIBLE.
@@ -116,6 +117,13 @@ class PlexDriver(ABC):
         Returns:
             PlexElement: PlexElement based on search criteria
         """
+        if isinstance(selector, tuple) and len(selector) == 2:
+            by, value = selector
+        elif isinstance(selector, str) and len(args) > 0:
+            by = selector
+            value = args[0]
+        else:
+            raise TypeError('selector argument not instance of tuple or did not receive 2 positional arguments for "by" and "value".')
         try:
             driver = driver or self.driver
             element_condition = _wait_until.get(type)

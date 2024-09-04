@@ -1,3 +1,16 @@
+# 0.2.0 [2024-09-04]
+
+## Changed
+
+Changed `wait_for_element` methods to support two positional arguments in addition to one tuple selector. More closely aligned with the behavior of Selenium's `find_element` method.
+
+* wait_for_element(By.NAME, 'ElementName')
+* wait_for_element((By.NAME, 'ElementName'))
+
+## Fixed
+
+Fixed oversight in `driver.common.wait_for_element()` that changed `driver` argument to be positional from optional keyword argument.
+
 # 0.1.5 [2024-08-30]
 
 ## Fixed

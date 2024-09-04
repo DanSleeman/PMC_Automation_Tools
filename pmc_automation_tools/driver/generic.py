@@ -19,8 +19,8 @@ class GenericDriver(PlexDriver):
         for k, v in kwargs.items():
             setattr(self, k, v)
     
-    def wait_for_element(self, selector, driver=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'GenericElement':
-        return super().wait_for_element(selector, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=GenericElement)
+    def wait_for_element(self, selector, *args, driver=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'GenericElement':
+        return super().wait_for_element(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=GenericElement)
     
     def login(self, url) -> 'GenericDriver':
         self.driver = self._driver_setup(self.driver_type)
