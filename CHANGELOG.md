@@ -4,6 +4,10 @@
 
 Reworked the `driver.ux.driver.sync_picker()` method to be more coherant and work more consistently.
 
+## Fixed
+
+Fixed missing error in `api.classic.datasource.call_data_source()` method.
+
 # 0.2.0 [2024-09-04]
 
 ## Changed

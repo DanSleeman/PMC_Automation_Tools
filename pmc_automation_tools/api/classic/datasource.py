@@ -54,7 +54,7 @@ class ClassicDataSource(DataSource):
         client = Client(wsdl=self._wsdl, transport=Transport(session=session))
         self._connection_address = client.wsdl.services['Service'].ports['ServiceSoap'].binding_options['address']
         if self._test_db and self._connection_address != SOAP_TEST:
-            raise
+            raise ClassicConnectionError('Test database was indicated, but WSDL address does not match expected test address.')
         response = client.service.ExecuteDataSourcePost(dataSourceKey=query.__api_id__, parameterNames=query._parameter_names, parameterValues=query._parameter_values, delimeter=query._delimeter)
         _response = serialize_object(response, dict)
         return ClassicDataSourceResponse(query.__api_id__, **_response)
