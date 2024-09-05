@@ -233,97 +233,113 @@ class UXPlexElement(PlexElement):
             NoRecordError: If the popup window does not return any results with the provided text content.
             NoSuchElementException: If the popup window has results, but there was no element matching the text content.
         """
-        multi = False
-        matching = False
+        if not text_content and not clear:
+            return
         picker_type = self.get_attribute('class')
         if picker_type == 'input-sm':
             date = True
-        if not text_content and not clear:
-            return
         if self.tag_name == 'select':
-            self.debug_logger.debug(f'Picker type is selection list.')
-            _select = Select(self)
-            _current_selection = _select.first_selected_option.text
-            if _current_selection == text_content:
-                self.debug_logger.debug(f'Picker selection: {_current_selection} matches {text_content}')
-                return
-            for o in _select.options:
-                if o.text == text_content:
-                    matching = True
-            if matching:
-                self.debug_logger.info(f'Matching option found. Picking {text_content}')
-                _select.select_by_visible_text(text_content)
-                self.send_keys(Keys.TAB)
-            else:
-                self.debug_logger.info(f'No matching selection available for {text_content}')
-                raise NoRecordError(f'No matching selection available for {text_content}')
+            self.debug_logger.debug('Picker type is selection list.')
+            self._handle_select_picker(text_content)
             return
+        self.debug_logger.debug('Handling non-select picker.')
+        # Check for existing selected item
+        matching = self._check_existing_selection(text_content)
+
+        # If there's no existing matching item, send the new text and process the picker
+        if not matching:
+            self.send_keys(text_content)
+            self.send_keys(Keys.TAB)
+            self._handle_popup_or_picker(text_content, date, column_delimiter)
+    
+    
+    def _handle_select_picker(self, text_content):
+        _select = Select(self)
+        current_selection = _select.first_selected_option.text
+        if current_selection == text_content:
+            self.debug_logger.debug(f'Picker selection: {current_selection} matches {text_content}')
+            return
+        matching = any(o.text == text_content for o in _select.options)
+        if matching:
+            self.debug_logger.info(f'Matching option found. Picking {text_content}')
+            _select.select_by_visible_text(text_content)
+            self.send_keys(Keys.TAB)
         else:
-            try:
-                # We would then need to locate if a value is already input and check the title attribute
-                self.debug_logger.debug(f'Trying to locate an existing selected item.')
-                selected_element = self.wait_for_element((By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']"), driver=self, timeout=1)
-                if selected_element:
-                    self.debug_logger.debug(f'Selected item detected')
-                    selected_item = self.wait_for_element((By.CLASS_NAME, "plex-picker-item-text"), driver=selected_element)
-                    current_text = selected_item.get_property('textContent')
-                    if current_text != text_content:
-                        self.debug_logger.info(f'Current text: {current_text} does not match provided text: {text_content}')
-                        self.send_keys(Keys.BACKSPACE) # Backspace will convert the picker item to normal text.
-                        self.clear()
-                    else:
-                        self.debug_logger.debug(f'Current text: {current_text} matches provided text: {text_content}.')
-                        matching = True
-                        return
-            except (NoSuchElementException, TimeoutException):
-                self.debug_logger.debug(f'No initial selected item.')
-            finally:
-                if matching:
-                    self.debug_logger.debug(f'Existing value matches.')
-                    return
-                self.send_keys(text_content)
-                self.send_keys(Keys.TAB)
-                try:
-                    if date:
-                        self.debug_logger.debug(f'Picker is a date filter.')
-                        self.wait_for_element((By.XPATH, "preceding-sibling::div[@class='plex-picker-item']"), driver=self, timeout=5)
-                        self.debug_logger.info(f'Date picker has been filled in with {text_content}')
-                    else:
-                        self.wait_for_element((By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']"), driver=self, timeout=5)
-                        self.debug_logger.info(f'Normal picker has been filled in with {text_content}')
-                except (TimeoutException, NoSuchElementException) as e:
-                    try:
-                        self.debug_logger.debug(f'No auto filled item, checking for a popup window.')
-                        popup = self.wait_for_element((By.CLASS_NAME, 'modal-dialog.plex-picker'), timeout=3)
-                        if 'plex-picker-multi' in popup.get_attribute('class'):
-                            self.debug_logger.debug(f'Picker is a multi-picker')
-                            multi = True
-                        self.wait_for_gears()
-                        items = popup.find_elements(By.CLASS_NAME, 'plex-grid-row')
-                        if not items:
-                            result_text = popup.find_element(By.TAG_NAME, 'h4').get_property('textContent')
-                            if 'No records' in result_text:
-                                self.debug_logger.info(f'No records found for {text_content}')
-                                footer = popup.find_element(By.CLASS_NAME, 'modal-footer')
-                                _cancel = footer.find_element(By.LINK_TEXT, 'Cancel')
-                                _cancel.click()
-                                raise NoRecordError(f'No records found for {text_content}')
-                        for i in items:
-                            item_columns = i.get_property('innerText').split(column_delimiter)
-                            if not any([c for c in item_columns if c == text_content]):
-                            # if i.text != text_content:
-                                option_found = False
-                                continue
-                            option_found = True
-                            self.debug_logger.info(f'Found matching item with text {i.text}.')
-                            i.click()
-                            if multi:
-                                self.debug_logger.info(f'Multi-picker, clicking ok on the popup window.')
-                                self.click_button('Ok', driver=popup)
-                                self.debug_logger.info(f'Multi-picker, clicked ok on the popup window.')
-                            break
-                        if not option_found:
-                            raise NoSuchElementException(f'No matching elements found for {text_content}')
-                    except (TimeoutException, NoSuchElementException) as e:
-                        self.debug_logger.info(f'No matching elements found for {text_content}')
-                        raise
+            self.debug_logger.info(f'No matching selection available for {text_content}')
+            raise NoRecordError(f'No matching selection available for {text_content}')
+        
+
+    def _check_existing_selection(self, text_content):
+        try:
+            self.debug_logger.debug('Trying to locate an existing selected item.')
+            selected_element = self.wait_for_element(
+                (By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']"),
+                driver=self,
+                timeout=1
+            )
+            if selected_element:
+                current_text = self.wait_for_element(
+                    (By.CLASS_NAME, "plex-picker-item-text"),
+                    driver=selected_element
+                ).get_property('textContent')
+                
+                if current_text == text_content:
+                    self.debug_logger.debug(f'Current text: {current_text} matches provided text: {text_content}.')
+                    return True
+                
+                self.debug_logger.info(f'Current text: {current_text} does not match provided text: {text_content}')
+                self.send_keys(Keys.BACKSPACE)
+                self.clear()
+        except (NoSuchElementException, TimeoutException):
+            self.debug_logger.debug('No initial selected item detected.')
+        return False
+    
+
+    def _handle_popup_or_picker(self, text_content, date, column_delimiter):
+        try:
+            picker_xpath = "preceding-sibling::div[@class='plex-picker-item']" if date else "preceding-sibling::div[@class='plex-picker-selected-items']"
+            self.wait_for_element((By.XPATH, picker_xpath), driver=self, timeout=5)
+            self.debug_logger.info(f'Picker has been filled in with {text_content}')
+        except (TimeoutException, NoSuchElementException):
+            self._handle_popup_window(text_content, column_delimiter)
+
+
+    def _handle_popup_window(self, text_content, column_delimiter):
+        try:
+            self.debug_logger.debug('Checking for a popup window.')
+            popup = self.wait_for_element((By.CLASS_NAME, 'modal-dialog.plex-picker'), timeout=3)
+            multi = 'plex-picker-multi' in popup.get_attribute('class')
+            self.wait_for_gears()
+
+            items = popup.find_elements(By.CLASS_NAME, 'plex-grid-row')
+            if not items:
+                self._handle_no_records_popup(popup, text_content)
+            
+            option_found = self._find_and_click_option(items, text_content, column_delimiter)
+            
+            if not option_found:
+                raise NoSuchElementException(f'No matching elements found for {text_content}')
+            if multi:
+                self.debug_logger.info('Multi-picker, clicking ok on the popup window.')
+                self.click_button('Ok', driver=popup)
+
+        except (TimeoutException, NoSuchElementException):
+            self.debug_logger.info(f'No matching elements found for {text_content}')
+            raise
+
+
+    def _handle_no_records_popup(self, popup, text_content):
+        result_text = popup.find_element(By.TAG_NAME, 'h4').get_property('textContent')
+        if 'No records' in result_text:
+            self.debug_logger.info(f'No records found for {text_content}')
+            popup.find_element(By.CLASS_NAME, 'modal-footer').find_element(By.LINK_TEXT, 'Cancel').click()
+            raise NoRecordError(f'No records found for {text_content}')
+
+    def _find_and_click_option(self, items, text_content, column_delimiter):
+        for item in items:
+            item_columns = item.get_property('innerText').split(column_delimiter)
+            if text_content in item_columns:
+                self.debug_logger.info(f'Found matching item with text {item.text}.')
+                item.click()
+                return True
+        return False

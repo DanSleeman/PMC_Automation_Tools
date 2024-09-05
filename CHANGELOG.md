@@ -1,9 +1,16 @@
+# 0.2.1 [2024-09-05]
+
+## Changed
+
+Reworked the `driver.ux.driver.sync_picker()` method to be more coherant and work more consistently.
+
 # 0.2.0 [2024-09-04]
 
 ## Changed
 
 Changed `wait_for_element` methods to support two positional arguments in addition to one tuple selector. More closely aligned with the behavior of Selenium's `find_element` method.
 
+These are now equivalent:
 * wait_for_element(By.NAME, 'ElementName')
 * wait_for_element((By.NAME, 'ElementName'))
 
