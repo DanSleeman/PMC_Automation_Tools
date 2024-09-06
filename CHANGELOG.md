@@ -4,6 +4,8 @@
 
 Reworked the `driver.ux.driver.sync_picker()` method to be more coherant and work more consistently.
 
+Updated README examples to show new style for `wait_for_element()` method.
+
 ## Fixed
 
 Fixed missing error in `api.classic.datasource.call_data_source()` method.
