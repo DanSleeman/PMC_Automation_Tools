@@ -40,10 +40,16 @@ class UXDriver(PlexDriver):
         super().__init__(environment='ux', *args, driver_type=driver_type, **kwargs)
         for k, v in kwargs.items():
             setattr(self, k, v)
-    
+
+
     def wait_for_element(self, selector, *args, driver:Union['UXDriver','UXPlexElement']=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
         return super().wait_for_element(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=UXPlexElement)
-    
+
+
+    def wait_for_elements(self, selector, *args, driver:Union['UXDriver','UXPlexElement']=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
+        return super().wait_for_elements(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=UXPlexElement)
+
+
     def wait_for_banner(self, timeout:int=10, ignore_exception:bool=False) -> None:
         """Wait for the banner to appear and handle success/error/warning messages.
 

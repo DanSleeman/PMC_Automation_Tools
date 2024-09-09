@@ -24,6 +24,7 @@ This library serves two main functions.
     - [save\_updated](#save_updated)
   - [PlexDriver Functions](#plexdriver-functions)
     - [wait\_for\_element](#wait_for_element)
+    - [wait\_for\_elements](#wait_for_elements)
     - [wait\_for\_gears](#wait_for_gears)
     - [wait\_for\_banner](#wait_for_banner)
     - [login](#login)
@@ -166,6 +167,30 @@ Returns PlexElement object
 ```python 
 import pmc_automation_tools as pa
 checklist_box = pa.wait_for_element(By.NAME, 'ChecklistKey', type=pa.CLICKABLE)
+```
+
+### wait_for_elements
+
+Waits for until an element condition is met.
+
+Parameters
+* selector - Selenium tuple selector
+* driver - WebDriver or WebElement as starting point for locating the element
+* timeout - How long to wait until the condition is met
+* type - What type of condition
+    * Visible (default)
+    <!-- * Invisible
+    * Clickable
+    * Exists (Don't wait at all, just retun a PlexElement object) -->
+* ignore_exception - Don't raise an exception if the condition is not met.
+
+Returns PlexElement object
+
+```python 
+import pmc_automation_tools as pa
+attribute_list = pa.wait_for_elements(By.NAME, 'PoLineAttributeValue')
+for el in attribute_list:
+    el.sync_textbox('Text')
 ```
 
 ### wait_for_gears

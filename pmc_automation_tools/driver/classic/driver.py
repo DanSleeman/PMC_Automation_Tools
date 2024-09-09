@@ -1,3 +1,4 @@
+from typing import Literal, Union
 import os
 from warnings import warn
 import sys
@@ -92,11 +93,18 @@ class ClassicDriver(PlexDriver):
         with open(os.path.join('resources', 'pcn.json'), 'w+', encoding='utf-8') as j:
             j.write(json.dumps(_pcn_dict, indent=4, ensure_ascii=False))
 
-    def wait_for_element(self, selector, *args, driver=None, timeout=15, type=VISIBLE, ignore_exception=False):
+
+    def wait_for_element(self, selector, *args, driver:Union['ClassicDriver','ClassicPlexElement']=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'ClassicPlexElement':
         return super().wait_for_element(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=ClassicPlexElement)
+
+
+    def wait_for_elements(self, selector, *args, driver:Union['ClassicDriver','ClassicPlexElement']=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'ClassicPlexElement':
+        return super().wait_for_elements(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=ClassicPlexElement)
+
 
     def wait_for_gears(self, loading_timeout=10):
         super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
+
 
     def click_button(self, button_text:str, driver:'ClassicPlexElement'=None):
         """Click on a button.

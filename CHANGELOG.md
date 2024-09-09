@@ -1,3 +1,15 @@
+# 0.2.2 [2024-09-09]
+
+## Fixed
+
+Fixed `wait_for_element` method not actually using the new by, value syntax when searching for elements.
+
+## Added
+
+Added `wait_for_elements` method to return a list of PlexElements while waiting for them to be visible.
+
+TODO - Add support for different expected conditions such as clickable and invisible.
+
 # 0.2.1 [2024-09-05]
 
 ## Changed
