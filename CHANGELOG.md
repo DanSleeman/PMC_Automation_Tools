@@ -7,6 +7,12 @@ Switched to the Selenium driver manager introduced in Selenium 4.6.
 
 Removed code for handling the browser version checking and driver downloads.
 
+## Fixed
+
+Fixed README example 4 using incorrect syntax for combining two lists of EDI documents.
+
+Fixed `api.datasource.call_data_source()` error when text response is empty string.
+
 # 0.2.2 [2024-09-09]
 
 ## Fixed

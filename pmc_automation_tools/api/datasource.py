@@ -75,7 +75,7 @@ class ApiDataSource(DataSource):
             except HTTPError as e:
                 raise ApiError('Error calling API.', **response.json(), status=response.status_code)
             # TODO - Check how the various response schema should be handled
-            if response.status_code == 200 and response.text != []:
+            if response.status_code == 200 and response.text != [] and response.text != '':
                 response_list.append(response.json())
             else:
                 return response
