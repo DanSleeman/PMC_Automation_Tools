@@ -1,13 +1,7 @@
-import urllib
-import zipfile
-import winreg
-import re
 from warnings import warn
 
-from pmc_automation_tools.common.get_file_properties import getFileProperties
 import os
 import time
-import json
 from abc import ABC, abstractmethod
 from typing import Literal, Union
 from pathlib import Path
@@ -24,7 +18,7 @@ from selenium.common.exceptions import (
     StaleElementReferenceException,
     NoSuchElementException
     )
-from selenium.webdriver.chrome.service import Service
+
 from selenium.webdriver.remote.webelement import WebElement
 from pmc_automation_tools.common.exceptions import (
     UpdateError,
@@ -78,12 +72,9 @@ class PlexDriver(ABC):
         self.debug_level = kwargs.get('debug_level', 0)
         self.debug_logger = debug_logger(self.debug_level)
         self.environment = environment.lower()
-        self.driver_override = kwargs.get('driver_override')
         self.single_pcn = False
-        
         self._set_login_vars()
         self._path_init()
-        self._read_driver_version()
         self.debug_logger.debug('finished initializing.')
 
 
@@ -101,7 +92,6 @@ class PlexDriver(ABC):
         self.download_dir = 'downloads'
         if not os.path.exists(self.download_dir):
             os.mkdir(self.download_dir)
-        self.latest_driver_version_file = os.path.join(self.resource_path, 'driver_version.txt')
 
 
     def wait_for_elements(self, selector:Union[tuple[str, str], str], *args, driver=None, timeout:int=15, type=VISIBLE, ignore_exception: bool=False, element_class:object=None) -> 'PlexElement':
@@ -304,131 +294,15 @@ class PlexDriver(ABC):
         login_button.click()
         self.first_login = True
 
+
     def _driver_setup(self, type):
         if type == 'edge':
-            self._edge_check()
-            self._download_edge_driver(self.full_browser_version)  # Adjust this to download the correct Edge driver
             return self._edge_setup()
         if type == 'chrome':
-            self._chrome_check()
-            self._download_chrome_driver(self.driver_override)
             return self._chrome_setup()
 
 
-    def _read_driver_version(self):
-        if os.path.exists(self.latest_driver_version_file):
-            with open(self.latest_driver_version_file, 'r') as f:
-                self.latest_downloaded_driver_version = f.read()
-                self.debug_logger.debug(f'Latest downloaded chromedriver version: {self.latest_downloaded_driver_version}')
-        else:
-            self.debug_logger.debug(f'Latest downloaded chromedriver file not detected. Setting version to None.')
-            self.latest_downloaded_driver_version = None
-
-
-    def _save_driver_version(self, version):
-        self.debug_logger.debug(f'Saving latest downloaded driver version: {version}')
-        with open(self.latest_driver_version_file, 'w+') as f:
-            f.write(version)
-
-
-
-
-    def _download_edge_driver(self, version:str=None):
-        """Downloads the EdgeDriver that will allow Selenium to function.
-
-        Args:
-            version (str, optional): edgedriver version if different than latest. Defaults to None.
-        """
-        text_path = os.path.join(self.resource_path, 'edgedriver.txt')
-        zip_path = os.path.join(self.resource_path, 'edgedriver.zip')
-        edgedriver_url = None
-        if version:
-            self.full_browser_version = version
-        else:
-            url = 'https://msedgedriver.azureedge.net/LATEST_STABLE'
-
-            urllib.request.urlretrieve(url, text_path)
-            with open(text_path, 'r', encoding='utf-16') as f:
-                latest_edgedriver_version = f.read().strip()
-            self.full_browser_version = latest_edgedriver_version
-        edgedriver_url = f'https://msedgedriver.azureedge.net/{self.full_browser_version}/edgedriver_win64.zip'
-        
-        if self.latest_downloaded_driver_version == edgedriver_url:
-            self.debug_logger.debug(f'Latest downloaded EdgeDriver version matches the latest online. Skipping download.')
-            return
-        else:
-            self._save_driver_version(edgedriver_url)
-
-        self.debug_logger.debug(f'Downloading EdgeDriver version from: {edgedriver_url}')
-        urllib.request.urlretrieve(edgedriver_url, zip_path)
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            self.debug_logger.debug(f'Extracting EdgeDriver to: {self.resource_path}')
-            zip_ref.extractall(self.resource_path)
-            
-    def _download_chrome_driver(self, version:str=None):
-        """Downloads the ChromeDriver that will allow Selenium to function.
-
-        Args:
-            version (str, optional): chromedriver version if different than latest. Defaults to None.
-        """
-        text_path =os.path.join(self.resource_path, 'chromedriver.txt')
-        zip_path =os.path.join(self.resource_path, 'chromedriver.zip')
-        chromedriver_url = None
-        url = 'https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone-with-downloads.json'
-        urllib.request.urlretrieve(url, text_path)
-        with open(text_path, 'r') as f:
-            chrome_releases = json.load(f)
-        latest_chromedriver_version = chrome_releases['milestones'][self.browser_version]['downloads']['chromedriver']#['platform']
-        
-        for x in latest_chromedriver_version:
-            if x['platform'] == 'win64':
-                chromedriver_url = x['url']
-        if chromedriver_url:
-            url = chromedriver_url
-            if self.latest_downloaded_chromedriver_version == url:
-                self.debug_logger.debug(f'Latest downloaded chromedriver version matches with lasted on web. Skipping download.')
-                return
-            else:
-                self._save_driver_version(url)
-        else:
-            if version:
-                self.full_browser_version = version
-            url = f'https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{self.full_browser_version}/win64/chromedriver-win64.zip'
-        self.debug_logger.debug(f'Downloading chromedriver version at: {url}')
-        urllib.request.urlretrieve(url, zip_path)
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            self.debug_logger.debug(f'Exctracting chromedriver to: {self.resource_path}')
-            zip_ref.extractall(self.resource_path)
-
-    def _chrome_check(self):
-        chrome_key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "ChromeHTML\\shell\\open\\command", 0, winreg.KEY_READ)
-        command = winreg.QueryValueEx(chrome_key, "")[0]
-        winreg.CloseKey(chrome_key)
-        chrome_browser = re.search("\"(.*?)\"", command)
-        if chrome_browser:
-            chrome_browser = chrome_browser.group(1)
-            print(f'Chrome browser install location: {chrome_browser}')
-        cb_dictionary = getFileProperties(chrome_browser) # returns whole string of version (ie. 76.0.111)
-        self.browser_version = cb_dictionary['FileVersion'].split('.')[0] # substring version to capabable version (ie. 77 / 76)
-        self.full_browser_version = cb_dictionary['FileVersion']
-        print(f'Chrome base version: {self.browser_version} | Full Chrome version: {self.full_browser_version}')
-    
-    def _edge_check(self):
-        edge_key = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "MSEdgeHTM\\shell\\open\\command", 0, winreg.KEY_READ)
-        command = winreg.QueryValueEx(edge_key, "")[0]
-        winreg.CloseKey(edge_key)
-        edge_browser = re.search("\"(.*?)\"", command)
-        if edge_browser:
-            edge_browser = edge_browser.group(1)
-            print(f'Edge browser install location: {edge_browser}')
-        edge_dictionary = getFileProperties(edge_browser)  # returns the full version string (e.g., 91.0.864.67)
-        self.browser_version = edge_dictionary['FileVersion'].split('.')[0]  # Extract the major version (e.g., 91)
-        self.full_browser_version = edge_dictionary['FileVersion']  # Full version (e.g., 91.0.864.67)
-
-        print(f'Edge base version: {self.browser_version} | Full Edge version: {self.full_browser_version}')
-
     def _edge_setup(self):
-        executable_path = os.path.join(self.resource_path, 'msedgedriver.exe')
         edge_options = EdgeOptions()
         edge_options.use_chromium = True
         edge_options.add_argument("--log-level=3")
@@ -439,14 +313,10 @@ class PlexDriver(ABC):
             "download.default_directory": f"{self.download_dir}",
             "download.prompt_for_download": False,
         })
+        return webdriver.Edge(options=edge_options)
 
-        service = Service(executable_path=executable_path)
-        return webdriver.Edge(service=service, options=edge_options)
-    
 
     def _chrome_setup(self):
-        executable_path = os.path.join(self.resource_path, 'chromedriver-win64', 'chromedriver.exe')
-        os.environ['webdriver.chrome.driver'] = executable_path
         chrome_options = Options()
         chrome_options.add_argument("--log-level=3")
         if self.headless:
@@ -456,8 +326,7 @@ class PlexDriver(ABC):
             "download.default_directory": f"{self.download_dir}",
             "download.prompt_for_download": False,
             })
-        service = Service(executable_path=executable_path)
-        return webdriver.Chrome(service=service, options=chrome_options)
+        return webdriver.Chrome(options=chrome_options)
 
 
     @abstractmethod

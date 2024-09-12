@@ -66,7 +66,6 @@ This library serves two main functions.
 ## Requirements
 
 * Selenium
-* pywin32
 * Requests
 * urllib3
 * zeep
@@ -322,6 +321,7 @@ Parameters
 * sub_item - Text for the sub item if the item is for a drop-down action
 
 If the screen is too small, or there are too many action bar items, the function will automatically check under the "More" drop-down list for the item.
+
 ## GenericDriver Functions
 
 Intended for use with non-Plex websites with similar methods available for use.
@@ -362,6 +362,7 @@ Updates a checkbox state to match the provided state.
 Wrapper around Selenium's screenshot functionality.
 
 Saves a screenshot of the element to the screenshots folder using the element's ID and name.
+
 ## GenericElement Functions
 
 ### sync_picker

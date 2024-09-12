@@ -17,7 +17,6 @@ setup(
     ],
     python_requires='>=3.8',
     install_requires=[
-        'pywin32>=306',
         'selenium>=4.13.0',
         'zeep~=4.2.1',
         'Requests>=2.31.0'

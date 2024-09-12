@@ -1,5 +1,4 @@
 Requests>=2.31.0
 urllib3>=2.0.6
 zeep~=4.2.1
-pywin32>=306
 selenium>=4.13.0

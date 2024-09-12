@@ -19,7 +19,6 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "pywin32>=306",
     "Requests>=2.31.0",
     "selenium>=4.13.0",
     "zeep>=4.2.1",

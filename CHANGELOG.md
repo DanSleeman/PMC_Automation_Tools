@@ -1,3 +1,12 @@
+# 0.3.0 [2024-9-12]
+
+## Changed
+
+Changed how browser drivers were managed.  
+Switched to the Selenium driver manager introduced in Selenium 4.6.
+
+Removed code for handling the browser version checking and driver downloads.
+
 # 0.2.2 [2024-09-09]
 
 ## Fixed
