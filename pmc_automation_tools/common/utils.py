@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import sys
 import json
+import csv
 from warnings import warn
 import logging
 DEFAULT_FORMATTER = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -111,7 +112,7 @@ def setup_logger(name, log_file='log.log', file_format='DAILY',
 def read_updated(in_file):
     
     """
-    Read in a json file of already updated records.
+    Read in a file of already updated records.
 
     Parameters:
     
@@ -122,19 +123,34 @@ def read_updated(in_file):
     - json object or empty list
     """
     updated_records = []
+    _file_type = in_file.split('.')[-1].lower()
     if os.path.exists(in_file):
         with open(in_file, 'r', encoding='utf-8') as f:
-            updated_records = json.load(f)
+            if _file_type == 'json':
+                updated_records = json.load(f)
+            elif _file_type == 'csv':
+                c = csv.DictReader(f)
+                updated_records = [row for row in c]
+            else:
+                raise TypeError('File name provided is not an expected type of json or csv.')
     return updated_records or []
 
 def save_updated(in_file, obj):
     """
-    Save a json file containing a list of already processed records.
+    Save a file containing a list of already processed records.
 
     Parameters:
     
     - in_file: file to use to save
-    - obj: json object to write to file. Typically a list containing dictionaries.
+    - obj: json object to write to file. Expects a list containing dictionaries.
     """
+    _file_type = in_file.split('.')[-1].lower()
     with open(in_file, 'w+', encoding='utf-8') as f:
-        f.write(json.dumps(obj, indent=4))
+        if _file_type == 'json':
+            f.write(json.dumps(obj, indent=4))
+        elif _file_type == 'csv':
+            c = csv.DictWriter(f, fieldnames=obj[0].keys(), lineterminator='\n')
+            c.writeheader()
+            c.writerows(obj)
+        else:
+            raise TypeError('File name provided is not an expected type of json or csv.')

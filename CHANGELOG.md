@@ -13,6 +13,10 @@ Fixed README example 4 using incorrect syntax for combining two lists of EDI doc
 
 Fixed `api.datasource.call_data_source()` error when text response is empty string.
 
+## Added
+
+Added functionality to `common.utils.read_updated()` and `common.utils.save_updated()` to support csv files.
+
 # 0.2.2 [2024-09-09]
 
 ## Fixed
