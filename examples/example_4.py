@@ -29,10 +29,9 @@ ai.mailboxActive = True
 ai.logDateBegin = log_start_date = yesterday.strftime('%Y-%m-%dT04:00:00Z')
 # This will return a list of all received documents
 r = a.call_data_source(pcn, ai)
-# Filter out 830s and 862s. This isn't possible directly from the API call.
-edi_messages = r.get_response_attribute('id', preserve_list=True, documentName='830')
-edi_862 = r.get_response_attribute('id', preserve_list=True, documentName='862')
-edi_messages.extend(edi_862)
+# Filter for 830s and 862s. This isn't possible directly from the API call.
+edi_documents = ['830', '862']
+edi_messages = r.get_response_attribute('id', preserve_list=True, documentName=edi_documents)
 
 # Get the actual EDI documents
 method = 'get'
