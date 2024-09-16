@@ -227,7 +227,7 @@ class DataSourceResponse(ABC):
             filter_criteria = kwargs
             attr_list = []
             for item in self._transformed_data:
-                if all(item.get(k) == v for k, v in filter_criteria.items()):
+                if all(item.get(k) in v for k, v in filter_criteria.items()):
                     attr_list.append(item.get(attribute))
         return attr_list[0] if len(attr_list) == 1 and not preserve_list else attr_list
     get_attribute = get_response_attribute

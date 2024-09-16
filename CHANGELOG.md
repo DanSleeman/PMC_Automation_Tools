@@ -1,3 +1,9 @@
+# 0.3.1 [2024-9-16]
+
+## Changed
+
+Changed `api.common.get_response_attribute()` to accept a list of values in the kwargs for filtering.
+
 # 0.3.0 [2024-9-12]
 
 ## Changed
