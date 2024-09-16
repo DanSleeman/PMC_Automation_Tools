@@ -74,9 +74,13 @@ class ApiDataSource(DataSource):
                 response.raise_for_status()
             except HTTPError as e:
                 raise ApiError('Error calling API.', **response.json(), status=response.status_code)
-            # TODO - Check how the various response schema should be handled
-            if response.status_code == 200 and response.text != [] and response.text != '':
-                response_list.append(response.json())
+            # TODO - Check how the various response schema should be handled. 9/16/2024 I think these are the only relevant cases. 
+            # List of dictionaries and single dictionary object
+            if response.status_code == 200:
+                if type(response.json()) is list and response.text != []:
+                    response_list.append(response.json())
+                elif response.text != '':
+                    response_list.append([response.json()])
             else:
                 return response
         return ApiDataSourceResponse(query.__api_id__, response_list = list(chain.from_iterable(response_list)))

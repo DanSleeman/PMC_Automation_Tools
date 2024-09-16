@@ -8,6 +8,8 @@ Changed `api.common.get_response_attribute()` to accept a list of values in the 
 
 Fixed `common.utils.save_updated()` when object is empty.
 
+Fixed `api.datasource.call_data_source()` responses not working for singular item get methods. I.E. Get_Log vs Get_Logs
+
 # 0.3.0 [2024-9-12]
 
 ## Changed
