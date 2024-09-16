@@ -144,6 +144,8 @@ def save_updated(in_file, obj):
     - in_file: file to use to save
     - obj: json object to write to file. Expects a list containing dictionaries.
     """
+    if not obj:
+        return
     _file_type = in_file.split('.')[-1].lower()
     with open(in_file, 'w+', encoding='utf-8') as f:
         if _file_type == 'json':

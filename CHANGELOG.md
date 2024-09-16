@@ -4,6 +4,10 @@
 
 Changed `api.common.get_response_attribute()` to accept a list of values in the kwargs for filtering.
 
+## Fixed
+
+Fixed `common.utils.save_updated()` when object is empty.
+
 # 0.3.0 [2024-9-12]
 
 ## Changed
