@@ -4,6 +4,9 @@
 
 Changed `api.common.get_response_attribute()` to accept a list of values in the kwargs for filtering.
 
+Changed `common.utils.read_updated()` to have an obj_type input param.  
+Use this to define the returned object structure if there is no file or the file is empty.
+
 ## Fixed
 
 Fixed `common.utils.save_updated()` when object is empty.

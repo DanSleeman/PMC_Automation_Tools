@@ -109,7 +109,7 @@ def setup_logger(name, log_file='log.log', file_format='DAILY',
         logger.addHandler(handler)
     return logger
 
-def read_updated(in_file):
+def read_updated(in_file, obj_type=list()):
     
     """
     Read in a file of already updated records.
@@ -117,12 +117,13 @@ def read_updated(in_file):
     Parameters:
     
     - in_file: file containing the data to read.
+    - obj_type: default object type to return if file is empty or doesn't exist.
 
     Returns:
 
-    - json object or empty list
+    - json object from file or empty obj_type object
     """
-    updated_records = []
+    updated_records = obj_type
     _file_type = in_file.split('.')[-1].lower()
     if os.path.exists(in_file):
         with open(in_file, 'r', encoding='utf-8') as f:
@@ -133,7 +134,7 @@ def read_updated(in_file):
                 updated_records = [row for row in c]
             else:
                 raise TypeError('File name provided is not an expected type of json or csv.')
-    return updated_records or []
+    return updated_records
 
 def save_updated(in_file, obj):
     """
