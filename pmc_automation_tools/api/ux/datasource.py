@@ -1,6 +1,7 @@
 # UX Datasource
 import os
 import json
+from datetime import datetime, date, timedelta, timezone
 from warnings import warn
 from requests.auth import HTTPBasicAuth
 from pmc_automation_tools.api.common import (
@@ -15,9 +16,25 @@ from pmc_automation_tools.api.common import (
 from pmc_automation_tools.common.exceptions import(
     UXResponseErrorLog
 )
+from pmc_automation_tools.common.utils import plex_date_formatter
 import requests
 from urllib3.util.retry import Retry
 from itertools import chain
+
+
+class UXDatetime():
+    def __init__(self, datestring):
+        self.datestring = datestring
+        self._dateparse()
+    def _dateparse(self):
+        try:
+            self.plex_date = datetime.strptime(self.datestring, '%m/%d/%Y %I:%H:%S %p')
+            self.datasource_date = plex_date_formatter(self.plex_date)
+        except:
+            self.plex_date = None
+            self.datasource_date = None
+
+
 class UXDataSourceInput(DataSourceInput):
     def __init__(self, data_source_key: str, *args, template_folder: str=None, **kwargs):
         super().__init__(data_source_key, type='ux', *args, **kwargs)
@@ -52,6 +69,8 @@ class UXDataSourceInput(DataSourceInput):
             value_type = type(v)
             if value_type is int and len(str(v)) == 1:
                 self.__input_types__[k] = bool
+            elif value_type is str and self._xdate(v):
+                self.__input_types__[k] = UXDatetime
             else:
                 self.__input_types__[k] = value_type
 
@@ -80,6 +99,14 @@ class UXDataSourceInput(DataSourceInput):
         if isinstance(b, int):
             return bool(b)
         return b.strip().upper() != 'FALSE'
+
+
+    def _xdate(self, d):
+        try:
+            datetime.strptime(d, '%Y-%m-%dT%H:%M:%S.%fZ')
+            return True
+        except ValueError:
+            return False
 
 
     def type_reconcile(self):

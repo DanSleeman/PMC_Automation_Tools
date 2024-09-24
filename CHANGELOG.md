@@ -13,6 +13,10 @@ Fixed `common.utils.save_updated()` when object is empty.
 
 Fixed `api.datasource.call_data_source()` responses not working for singular item get methods. I.E. Get_Log vs Get_Logs
 
+## Added
+
+Added support for ux data source template datetime type recognition.
+
 # 0.3.0 [2024-9-12]
 
 ## Changed
