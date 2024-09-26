@@ -1,3 +1,7 @@
+## TODO
+
+[ ] `api.datasource.call_data_source()` - Check for presence of 'json' key in `query._query_string` to avoid unintuitive initialization behavior with non-named input parameters such as lists. EX: when calling https://connect.plex.com/purchasing/v1/release-batch/cancel API which only takes a list of objects as input.
+
 # 0.3.1 [2024-9-16]
 
 ## Changed

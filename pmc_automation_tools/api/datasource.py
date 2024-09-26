@@ -68,6 +68,7 @@ class ApiDataSource(DataSource):
             retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
             adapter = CustomSslContextHTTPAdapter(max_retries=retry)
             session.mount('https://', adapter)
+            # TODO - 9/26/2024 Check for presence of json key in query._query_string to avoid unintuitive initialization behavior with non-named input parameters such as lists.
             request_params = {'json': query._query_string} if query._method.upper() in ['POST', 'PUT'] else {'params': query._query_string}
             response = session.request(query._method, query.__api_id__, headers=headers, **request_params)
             try:
