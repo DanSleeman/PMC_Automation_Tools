@@ -21,6 +21,8 @@ Fixed `api.datasource.call_data_source()` responses not working for singular ite
 
 Added support for ux data source template datetime type recognition.
 
+Added param to `common.utils.plex_date_formatter()` to convert the supplied datetime to UTC.
+
 # 0.3.0 [2024-9-12]
 
 ## Changed

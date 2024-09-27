@@ -159,10 +159,9 @@ def save_updated(in_file, obj):
             raise TypeError('File name provided is not an expected type of json or csv.')
         
 
-def plex_date_formatter(*args: datetime|int, date_offset=0):
+def plex_date_formatter(*args: datetime|int, date_offset=0, tz_convert=True):
     """
-    Takes 'normal' date formats and converts them to a Plex web service 
-        format (ISO format)
+    Takes 'normal' date formats and converts them to a Plex web service format (ISO format)
     Can also take a single datetime object.
     2022, 09, 11 -> 2022-09-11T04:00:00Z
     2022, 09, 11, 18, 45 -> 2022-09-11T22:45:00Z
@@ -172,10 +171,11 @@ def plex_date_formatter(*args: datetime|int, date_offset=0):
         Useful when providing just a datetime object to the function
     """
     if isinstance(args[0], (datetime, date)):
-        x = args[0]
+        _date = args[0]
     else:
-        x = datetime(*args).astimezone(datetime.now(timezone.utc).tzinfo)
-    # x += timedelta(hours=4)
-    x += timedelta(days=date_offset)
-    f_date = x.strftime('%Y-%m-%dT%H:%M:%SZ')
+        _date = datetime(*args)
+    if tz_convert:
+        _date = _date.astimezone(datetime.now(timezone.utc).tzinfo)
+    _date += timedelta(days=date_offset)
+    f_date = _date.strftime('%Y-%m-%dT%H:%M:%SZ')
     return f_date
