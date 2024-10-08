@@ -126,7 +126,7 @@ def read_updated(in_file, obj_type=list()):
     updated_records = obj_type
     _file_type = in_file.split('.')[-1].lower()
     if os.path.exists(in_file):
-        with open(in_file, 'r', encoding='utf-8') as f:
+        with open(in_file, 'r', encoding='utf-8-sig') as f:
             if _file_type == 'json':
                 updated_records = json.load(f)
             elif _file_type == 'csv':

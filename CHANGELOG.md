@@ -15,6 +15,8 @@ Use this to define the returned object structure if there is no file or the file
 
 Fixed `common.utils.save_updated()` when object is empty.
 
+Fixed `common.utils.read_updated()` encoding when opening a classic sql query download. Must use utf-8-sig in order to reference the first column properly.
+
 Fixed `api.datasource.call_data_source()` responses not working for singular item get methods. I.E. Get_Log vs Get_Logs
 
 ## Added
