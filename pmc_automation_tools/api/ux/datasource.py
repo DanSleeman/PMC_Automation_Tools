@@ -128,18 +128,24 @@ class UXDataSourceInput(DataSourceInput):
             setattr(self, k, new_val)
 
 
-    def get_to_update(self, get_instance:'UXDataSourceResponse'):
+    def get_to_update(self, get_instance:'UXDataSourceResponse', response_index:int=0, **kwargs):
         """
         Adjusts the attribute types to match the expected types of the data source.
 
         Parameters:
         - get_instance: a UXDataSourceResponse object returned from a call to a 'get' type datasource.
+        - response_index: formated response index for retrieving the data.
+        - kwargs: Intended for use with key:replacement pairs of data. Often time the datasource_get response keys will not match the datasource_update input names.
+                EX:
+                    ui.get_to_update(response, Champion_PUN='Champion')
+                    This will apply the value in the "Champion_PUN" output key to the "Champion" input key.
         """
-        for k, v in vars(get_instance).items():
+        if not getattr(get_instance,'_transformed_data',None):
+            raise AttributeError('Provided UXDataSourceResponse object has no _transformed_data attribute.')
+        for k, v in get_instance._transformed_data[response_index].items():
+            if k in kwargs.keys():
+                k = kwargs.get(k)
             setattr(self, k, v)
-        for k in self.__input_types__.keys():
-            if k not in vars(get_instance) and not k.startswith('_'):
-                self.pop_inputs(k)
         self.type_reconcile()
         self.purge_empty()
 

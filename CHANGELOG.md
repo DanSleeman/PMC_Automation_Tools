@@ -2,7 +2,7 @@
 
 [ ] `api.datasource.call_data_source()` - Check for presence of 'json' key in `query._query_string` to avoid unintuitive initialization behavior with non-named input parameters such as lists. EX: when calling https://connect.plex.com/purchasing/v1/release-batch/cancel API which only takes a list of objects as input.
 
-# 0.3.1 [2024-9-16]
+# 0.3.1 [2024-10-9]
 
 ## Changed
 
@@ -10,6 +10,8 @@ Changed `api.common.get_response_attribute()` to accept a list of values in the 
 
 Changed `common.utils.read_updated()` to have an obj_type input param.  
 Use this to define the returned object structure if there is no file or the file is empty.
+
+Removed code from `api.ux.datasource.get_to_update()` that was redundant.
 
 ## Fixed
 
@@ -19,11 +21,15 @@ Fixed `common.utils.read_updated()` encoding when opening a classic sql query do
 
 Fixed `api.datasource.call_data_source()` responses not working for singular item get methods. I.E. Get_Log vs Get_Logs
 
+Fixed `api.ux.datasource.get_to_update()` to actually function with a response object.
+
 ## Added
 
 Added support for ux data source template datetime type recognition.
 
 Added param to `common.utils.plex_date_formatter()` to convert the supplied datetime to UTC.
+
+Added output=input key replacement kwarg support to `api.ux.datasource.get_to_update()`. EX: ui.get_to_update(response, Champion_PUN='Champion') will use the "Champion_PUN" from the response object and set the ui object's "Champion" attribute to this value.
 
 # 0.3.0 [2024-9-12]
 
