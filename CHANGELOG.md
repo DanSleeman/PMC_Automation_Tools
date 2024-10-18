@@ -23,6 +23,9 @@ Fixed `api.datasource.call_data_source()` responses not working for singular ite
 
 Fixed `api.ux.datasource.get_to_update()` to actually function with a response object.
 
+Added a step in `driver.ux.driver.sync_picker()` to collapse sequencial whitespace in text input when searching for options on a select type element (drop-downs).  
+This should not be done for text input type pickers (magnifying glass) as they retain the sequencial whitespace in comparisons.
+
 ## Added
 
 Added support for ux data source template datetime type recognition.

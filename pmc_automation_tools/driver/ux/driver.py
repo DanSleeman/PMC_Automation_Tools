@@ -260,6 +260,10 @@ class UXPlexElement(PlexElement):
     
     
     def _handle_select_picker(self, text_content):
+        # Visible text content always collapses repeated spaces. Need to normalize searched input to account for this.
+        # I don't think there should ever by any tab or newline characters within these options, but this would normalize them as well.
+        # This action shouldn't be performed for non-select type pickers since the initial search uses exact database values retaining sequencial spaces.
+        text_content = ' '.join(text_content.split())
         _select = Select(self)
         current_selection = _select.first_selected_option.text
         if current_selection == text_content:
@@ -287,7 +291,7 @@ class UXPlexElement(PlexElement):
                 current_text = self.wait_for_element(
                     (By.CLASS_NAME, "plex-picker-item-text"),
                     driver=selected_element
-                ).get_property('textContent')
+                ).get_property('textContent') # This will retain sequencial space characters in the value.
                 
                 if current_text == text_content:
                     self.debug_logger.debug(f'Current text: {current_text} matches provided text: {text_content}.')
