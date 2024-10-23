@@ -34,6 +34,8 @@ Added param to `common.utils.plex_date_formatter()` to convert the supplied date
 
 Added output=input key replacement kwarg support to `api.ux.datasource.get_to_update()`. EX: ui.get_to_update(response, Champion_PUN='Champion') will use the "Champion_PUN" from the response object and set the ui object's "Champion" attribute to this value.
 
+Added support for `api.common.get_response_attribute()` to return multiple attributes if supplying a tuple of attributes.
+
 # 0.3.0 [2024-9-12]
 
 ## Changed

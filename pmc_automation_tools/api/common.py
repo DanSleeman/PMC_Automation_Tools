@@ -3,7 +3,7 @@ import os
 import json
 from requests.auth import HTTPBasicAuth
 from pmc_automation_tools.common.exceptions import PlexResponseError
-from typing import Literal
+from typing import Literal, Union
 from abc import ABC, abstractmethod
 from requests.adapters import HTTPAdapter
 from urllib3 import PoolManager
@@ -207,13 +207,13 @@ class DataSourceResponse(ABC):
             f.write(json.dumps(self._transformed_data, indent=4))
 
 
-    def get_response_attribute(self, attribute, preserve_list=False, **kwargs) -> list | str:
+    def get_response_attribute(self, attribute:Union[str,tuple[str]], preserve_list=False, **kwargs) -> list | str:
         """
         Extract the attribute from the formatted data in the response.
 
         Parameters:
 
-        - attribute: attribute name from the response to return
+        - attribute: attribute name(s) from the response to return
         - preserve_list: Pass true to retain a list of attributes even if a single item is found.
         - kwargs: arbitrary number of attribute=value filters to use when searching for a specific attribute to return.
 
@@ -221,13 +221,14 @@ class DataSourceResponse(ABC):
 
         - attribute(s) matching the criteria
         """
-        if not kwargs:
-            attr_list = [item.get(attribute) for item in self._transformed_data]
-        else:
-            filter_criteria = kwargs
-            attr_list = []
-            for item in self._transformed_data:
-                if all(item.get(k) in v for k, v in filter_criteria.items()):
-                    attr_list.append(item.get(attribute))
+        if not isinstance(attribute, tuple):
+            attribute = (attribute,)
+        attr_list = []
+        for item in self._transformed_data:
+            if not kwargs or all(item.get(k) in v for k, v in kwargs.items()):
+                # Extract attributes for each item as a tuple (even for a single attribute)
+                values = tuple(item.get(attr) for attr in attribute)
+                # If single attribute, unpack the tuple, otherwise append the tuple
+                attr_list.append(values[0] if len(values) == 1 else values)
         return attr_list[0] if len(attr_list) == 1 and not preserve_list else attr_list
     get_attribute = get_response_attribute
