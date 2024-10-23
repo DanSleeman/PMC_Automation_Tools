@@ -225,7 +225,7 @@ class DataSourceResponse(ABC):
             attribute = (attribute,)
         attr_list = []
         for item in self._transformed_data:
-            if not kwargs or all(item.get(k) in v for k, v in kwargs.items()):
+            if not kwargs or all(item.get(k) in v if isinstance(v, list) else item.get(k) == v for k, v in kwargs.items()):
                 # Extract attributes for each item as a tuple (even for a single attribute)
                 values = tuple(item.get(attr) for attr in attribute)
                 # If single attribute, unpack the tuple, otherwise append the tuple
