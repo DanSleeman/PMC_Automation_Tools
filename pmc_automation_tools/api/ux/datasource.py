@@ -98,7 +98,12 @@ class UXDataSourceInput(DataSourceInput):
     def _xbool(self, b):
         if isinstance(b, int):
             return bool(b)
-        return b.strip().upper() != 'FALSE'
+        if isinstance(b, str):
+            try:
+                return bool(int(b)) if len(b) == 1 else b.strip().upper() == 'TRUE'
+            except ValueError:
+                pass
+        return bool(b)
 
 
     def _xdate(self, d):

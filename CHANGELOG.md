@@ -2,7 +2,7 @@
 
 [ ] `api.datasource.call_data_source()` - Check for presence of 'json' key in `query._query_string` to avoid unintuitive initialization behavior with non-named input parameters such as lists. EX: when calling https://connect.plex.com/purchasing/v1/release-batch/cancel API which only takes a list of objects as input.
 
-# 0.3.1 [2024-10-9]
+# 0.3.1 [2024-10-25]
 
 ## Changed
 
@@ -12,6 +12,8 @@ Changed `common.utils.read_updated()` to have an obj_type input param.
 Use this to define the returned object structure if there is no file or the file is empty.
 
 Removed code from `api.ux.datasource.get_to_update()` that was redundant.
+
+Changed `api.ux.datasource.type_reconcile()` boolean recognition to default to False for any value not "TRUE" case insensitive.
 
 ## Fixed
 
@@ -27,6 +29,8 @@ Added a step in `driver.ux.driver.sync_picker()` to collapse sequencial whitespa
 This should not be done for text input type pickers (magnifying glass) as they retain the sequencial whitespace in comparisons.
 
 Fixed `api.common.get_response_attribute()` to check if kwarg is single value and compare exact match. List kwargs compare if the attribute is within the set.
+
+Fixed `api.ux.datasource.type_reconcile()` fixed value recognition for booleans when the input is strings of 0 or 1.
 
 ## Added
 
