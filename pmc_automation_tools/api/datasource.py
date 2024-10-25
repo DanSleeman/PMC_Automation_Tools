@@ -26,6 +26,8 @@ class ApiDataSourceInput(DataSourceInput):
 
     def _update_input_parameters(self):
         self._query_string = {k:v for k, v in vars(self).items() if not k.startswith('_')}
+        if 'json' in self._query_string.keys():
+            self._query_string = self._query_string['json']
 
 
 class ApiDataSource(DataSource):

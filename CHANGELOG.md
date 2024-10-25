@@ -1,6 +1,6 @@
 ## TODO
 
-[ ] `api.datasource.call_data_source()` - Check for presence of 'json' key in `query._query_string` to avoid unintuitive initialization behavior with non-named input parameters such as lists. EX: when calling https://connect.plex.com/purchasing/v1/release-batch/cancel API which only takes a list of objects as input.
+[x] `api.datasource.call_data_source()` - Check for presence of 'json' key in `query._query_string` to avoid unintuitive initialization behavior with non-named input parameters such as lists. EX: when calling https://connect.plex.com/purchasing/v1/release-batch/cancel API which only takes a list of objects as input.
 
 # 0.3.1 [2024-10-25]
 
@@ -30,7 +30,9 @@ This should not be done for text input type pickers (magnifying glass) as they r
 
 Fixed `api.common.get_response_attribute()` to check if kwarg is single value and compare exact match. List kwargs compare if the attribute is within the set.
 
-Fixed `api.ux.datasource.type_reconcile()` fixed value recognition for booleans when the input is strings of 0 or 1.
+Fixed `api.ux.datasource.type_reconcile()` value recognition for booleans when the input is strings of 0 or 1.
+
+Fixed `api.datasource._update_input_parameters()` to recognize 'json' attribute and assign it to _query_string directly.
 
 ## Added
 
