@@ -70,15 +70,13 @@ class ApiDataSource(DataSource):
             retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
             adapter = CustomSslContextHTTPAdapter(max_retries=retry)
             session.mount('https://', adapter)
-            # TODO - 9/26/2024 Check for presence of json key in query._query_string to avoid unintuitive initialization behavior with non-named input parameters such as lists.
             request_params = {'json': query._query_string} if query._method.upper() in ['POST', 'PUT'] else {'params': query._query_string}
             response = session.request(query._method, query.__api_id__, headers=headers, **request_params)
             try:
                 response.raise_for_status()
             except HTTPError as e:
                 raise ApiError('Error calling API.', **response.json(), status=response.status_code)
-            # TODO - Check how the various response schema should be handled. 9/16/2024 I think these are the only relevant cases. 
-            # List of dictionaries and single dictionary object
+            # List of dictionaries or single dictionary object
             if response.text != [] and response.text != '':
                     if type(response.json()) is list:
                         response_list.append(response.json())

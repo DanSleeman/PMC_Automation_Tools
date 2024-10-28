@@ -5,6 +5,8 @@ import json
 import csv
 from warnings import warn
 import logging
+from typing import Union
+
 DEFAULT_FORMATTER = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 def debug_logger(level=logging.NOTSET):
     logger = logging.getLogger(__name__)
@@ -109,7 +111,7 @@ def setup_logger(name, log_file='log.log', file_format='DAILY',
         logger.addHandler(handler)
     return logger
 
-def read_updated(in_file, obj_type=list()):
+def read_updated(in_file, obj_type=None) -> Union[list, dict]: 
     
     """
     Read in a file of already updated records.
@@ -122,7 +124,10 @@ def read_updated(in_file, obj_type=list()):
     Returns:
 
     - json object from file or empty obj_type object
+    - list of dictionaries containing csv row data.
     """
+    if obj_type is None:
+        obj_type = []
     updated_records = obj_type
     _file_type = in_file.split('.')[-1].lower()
     if os.path.exists(in_file):

@@ -1,6 +1,10 @@
 ## TODO
 
-[x] `api.datasource.call_data_source()` - Check for presence of 'json' key in `query._query_string` to avoid unintuitive initialization behavior with non-named input parameters such as lists. EX: when calling https://connect.plex.com/purchasing/v1/release-batch/cancel API which only takes a list of objects as input.
+[ ] - `driver.common.wait_for_elements()` - Add support for different expected conditions such as clickable and invisible.
+
+[ ] - `driver.ux.driver.sync_picker()` - Add support for multi-picker value selection
+
+[ ] - `driver.clssic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
 # 0.3.1 [2024-10-25]
 
@@ -33,6 +37,8 @@ Fixed `api.common.get_response_attribute()` to check if kwarg is single value an
 Fixed `api.ux.datasource.type_reconcile()` value recognition for booleans when the input is strings of 0 or 1.
 
 Fixed `api.datasource._update_input_parameters()` to recognize 'json' attribute and assign it to _query_string directly.
+
+Fixed `common.utils.read_updated()` to not cause clashing with error records and update records when called for separate objects.
 
 ## Added
 
@@ -72,8 +78,6 @@ Fixed `wait_for_element` method not actually using the new by, value syntax when
 ## Added
 
 Added `wait_for_elements` method to return a list of PlexElements while waiting for them to be visible.
-
-TODO - Add support for different expected conditions such as clickable and invisible.
 
 # 0.2.1 [2024-09-05]
 
