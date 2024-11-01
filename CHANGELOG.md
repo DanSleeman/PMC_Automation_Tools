@@ -6,7 +6,7 @@
 
 [ ] - `driver.clssic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
-# 0.3.1 [2024-10-25]
+# 0.3.1 [2024-11-1]
 
 ## Changed
 
