@@ -47,7 +47,7 @@ def debug_dump_variables(obj):
 def get_case_insensitive_key_value(input_dict, key):
     return next((value for dict_key, value in input_dict.items() if dict_key.lower() == key.lower()), None)
 
-def create_batch_folder(root='', batch_code=None, include_time=False, test=False) -> str:
+def create_batch_folder(root='', batch_code=None, include_time=False, test=False, batch_prefix=None) -> str:
     """
     Used to set up a batch folder to store any log files or screenshots during an automation run.
     
@@ -57,7 +57,8 @@ def create_batch_folder(root='', batch_code=None, include_time=False, test=False
     - batch_code: Optional batch code to use instead of generated one. Overrides include_time parameter.
     - include_time: If True, appends the current time to the batch code.
     - test: If True, uses 'TEST' for the batch folder path; otherwise, uses 'PROD'.
-
+    - batch_prefix: adds prefix value to batch code.
+    
     Returns:
     
     - The path to the created batch folder.
@@ -71,6 +72,7 @@ def create_batch_folder(root='', batch_code=None, include_time=False, test=False
     b_code = batch_code or now.strftime('%Y%m%d')
     b_time = now.strftime('%H%M')
     folder_name = f'{b_code}_{b_time}' if include_time else b_code
+    folder_name = f'{batch_prefix}_{folder_name}' if batch_prefix else folder_name
     batch_folder = os.path.join(root, 'batch_codes', db, folder_name)
     os.makedirs(batch_folder, exist_ok=True)
     return batch_folder

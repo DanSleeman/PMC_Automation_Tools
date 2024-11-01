@@ -182,6 +182,10 @@ class DataSourceResponse(ABC):
             setattr(self, key, value)
 
 
+    def __str__(self):
+        return str([_r for _r in self._transformed_data])
+
+
     @abstractmethod
     def _format_response(self):...
 

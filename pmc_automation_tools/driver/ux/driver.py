@@ -253,7 +253,7 @@ class UXPlexElement(PlexElement):
         matching = self._check_existing_selection(text_content)
 
         # If there's no existing matching item, send the new text and process the picker
-        if not matching:
+        if not matching and not clear:
             self.send_keys(text_content)
             self.send_keys(Keys.TAB)
             self._handle_popup_or_picker(text_content, date, column_delimiter)

@@ -40,6 +40,8 @@ Fixed `api.datasource._update_input_parameters()` to recognize 'json' attribute 
 
 Fixed `common.utils.read_updated()` to not cause clashing with error records and update records when called for separate objects.
 
+Fixed `ux.driver.sync_picker()` when using clear=True. Was expecting an element or popup when there wouldn't be any.
+
 ## Added
 
 Added support for ux data source template datetime type recognition.
@@ -49,6 +51,10 @@ Added param to `common.utils.plex_date_formatter()` to convert the supplied date
 Added output=input key replacement kwarg support to `api.ux.datasource.get_to_update()`. EX: ui.get_to_update(response, Champion_PUN='Champion') will use the "Champion_PUN" from the response object and set the ui object's "Champion" attribute to this value.
 
 Added support for `api.common.get_response_attribute()` to return multiple attributes if supplying a tuple of attributes.
+
+Added `__str__` method for `DataSourceResponse` class to print the transformed data attribute.
+
+Added `batch_prefix` param to `common.utils.create_batch_folder()` if a static batch is not desired, but still want different batches for different operations within the same directory.
 
 # 0.3.0 [2024-9-12]
 
