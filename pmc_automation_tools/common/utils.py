@@ -186,3 +186,8 @@ def plex_date_formatter(*args: datetime|int, date_offset=0, tz_convert=True):
     _date += timedelta(days=date_offset)
     f_date = _date.strftime('%Y-%m-%dT%H:%M:%SZ')
     return f_date
+
+
+def chunk_list(lst, chunk_size):
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i:i + chunk_size]

@@ -6,7 +6,7 @@
 
 [ ] - `driver.clssic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
-# 0.3.1 [2024-11-1]
+# 0.4.0 [2024-11-1]
 
 ## Changed
 
@@ -55,6 +55,8 @@ Added support for `api.common.get_response_attribute()` to return multiple attri
 Added `__str__` method for `DataSourceResponse` class to print the transformed data attribute.
 
 Added `batch_prefix` param to `common.utils.create_batch_folder()` if a static batch is not desired, but still want different batches for different operations within the same directory.
+
+Added `common.utils.chunk_list()` function. Useful for API calls where a list of IDs would cause a URI to become too long.
 
 # 0.3.0 [2024-9-12]
 
