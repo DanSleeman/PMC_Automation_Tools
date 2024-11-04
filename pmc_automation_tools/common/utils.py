@@ -143,7 +143,7 @@ def read_updated(in_file, obj_type=None) -> Union[list, dict]:
                 raise TypeError('File name provided is not an expected type of json or csv.')
     return updated_records
 
-def save_updated(in_file, obj):
+def save_updated_overwrite(in_file, obj):
     """
     Save a file containing a list of already processed records.
 
@@ -165,6 +165,54 @@ def save_updated(in_file, obj):
         else:
             raise TypeError('File name provided is not an expected type of json or csv.')
         
+
+def save_updated(in_file, obj):
+    """
+    Append to a file containing a list of already processed records.
+
+    Parameters:
+    
+    - in_file: file to use to save
+    - obj: json object to write to file. Expects a list containing dictionaries.
+    """
+    if not obj:
+        return
+    if not isinstance(obj, list):
+        obj = [obj]
+    if len(obj) > 1:
+        return save_updated_overwrite(in_file, obj)
+    _file_type = in_file.split('.')[-1].lower()
+    
+    # Append JSON data
+    if _file_type == 'json':
+        # Load existing data if the file exists and is non-empty
+        if os.path.exists(in_file) and os.path.getsize(in_file) > 0:
+            with open(in_file, 'r', encoding='utf-8') as f:
+                try:
+                    existing_data = json.load(f)
+                except json.JSONDecodeError:
+                    existing_data = []
+        else:
+            existing_data = []
+        
+        # Append new data and save
+        with open(in_file, 'w', encoding='utf-8') as f:
+            json.dump(existing_data + obj, f, indent=4)
+
+    # Append CSV data
+    elif _file_type == 'csv':
+        file_exists = os.path.isfile(in_file)
+        with open(in_file, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=obj[0].keys(), lineterminator='\n')
+            
+            # Write the header only if the file is new or empty
+            if not file_exists or os.path.getsize(in_file) == 0:
+                writer.writeheader()
+            
+            writer.writerows(obj)
+    else:
+        raise TypeError('File name provided is not an expected type of json or csv.')
+    
 
 def plex_date_formatter(*args: datetime|int, date_offset=0, tz_convert=True):
     """

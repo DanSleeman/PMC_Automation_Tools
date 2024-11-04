@@ -26,13 +26,30 @@ class UXDatetime():
     def __init__(self, datestring):
         self.datestring = datestring
         self._dateparse()
+    def __repr__(self):
+        return f"UXDatetime(datestring='{self.datestring}', datasource_date='{self.datasource_date}')"
+    def __str__(self):
+        return self.datasource_date
+
+
     def _dateparse(self):
         try:
             self.plex_date = datetime.strptime(self.datestring, '%m/%d/%Y %I:%H:%S %p')
             self.datasource_date = plex_date_formatter(self.plex_date)
         except:
             self.plex_date = None
-            self.datasource_date = None
+            self.datasource_date = None if self.datestring == '' else "Invalid Datetime Format"
+
+
+    def to_json(self):
+        return self.datasource_date
+
+
+class UXDatetimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UXDatetime):
+            return obj.to_json()
+        return super().default(obj)
 
 
 class UXDataSourceInput(DataSourceInput):
@@ -209,9 +226,10 @@ class UXDataSource(DataSource):
 
         - UXDataSourceResponse object
         """
+        json_query = json.loads(json.dumps(query._query_string, cls=UXDatetimeEncoder))
         url = f'https://{self.url_db}cloud.plex.com/api/datasources/{query.__api_id__}/execute?format=2'
         session = self._create_session()
-        response = session.post(url, json=query._query_string, auth=self._auth)
+        response = session.post(url, json=json_query, auth=self._auth)
         json_data = response.json()
         return UXDataSourceResponse(query.__api_id__, **json_data)
     

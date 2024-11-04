@@ -6,6 +6,18 @@
 
 [ ] - `driver.clssic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
+[ ] - `api.ux.datasource._xdate()` - Add support for other datetime formats that commonly come from the SQL environment. The current format should match the datetime SQL object. If converted to a varchar, then it will change and not work.
+
+# 0.4.1 [2024-11-4]
+
+## Fixed
+
+Fixed `api.ux.datasource.type_reconcile()` when dealing with datetime values.
+
+## Changed
+
+Changed `common.utils.save_updated()` to append single dictionary values to the existing file. If providing a list of dictionaries, the previous full file re-write method will be called instead.
+
 # 0.4.0 [2024-11-1]
 
 ## Changed
