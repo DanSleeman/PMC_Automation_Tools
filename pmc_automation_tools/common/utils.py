@@ -6,6 +6,7 @@ import csv
 from warnings import warn
 import logging
 from typing import Union
+from openpyxl import load_workbook
 
 DEFAULT_FORMATTER = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 def debug_logger(level=logging.NOTSET):
@@ -132,6 +133,8 @@ def read_updated(in_file, obj_type=None) -> Union[list, dict]:
         obj_type = []
     updated_records = obj_type
     _file_type = in_file.split('.')[-1].lower()
+    if _file_type == 'xlsx':
+        return _read_excel(in_file)
     if os.path.exists(in_file):
         with open(in_file, 'r', encoding='utf-8-sig') as f:
             if _file_type == 'json':
@@ -140,8 +143,44 @@ def read_updated(in_file, obj_type=None) -> Union[list, dict]:
                 c = csv.DictReader(f)
                 updated_records = [row for row in c]
             else:
-                raise TypeError('File name provided is not an expected type of json or csv.')
+                raise TypeError('File name provided is not an expected type of xlsx, json or csv.')
     return updated_records
+
+
+def _read_excel(file_path):
+    """
+    Reads the contents of the first sheet in an Excel (.xlsx) file.
+
+    Parameters:
+    - file_path: Path to the Excel file to read.
+
+    Returns:
+    - List of dictionaries, where each dictionary represents a row, with keys as column headers.
+    """
+    while True:
+        try:
+            workbook = load_workbook(file_path)
+            break
+        except PermissionError:
+            print("\a")
+            user_input = input("\n[WARNING] The file is currently in use. Please close the file and press Enter to try again, or type 'cancel' to stop: ")
+            if user_input.lower() == 'cancel':
+                return []
+    first_sheet = workbook.active  # This gets the first sheet in the workbook
+    data = []
+    
+    # Get the headers (first row)
+    headers = next(first_sheet.iter_rows(min_row=1, max_row=1, values_only=True))
+
+    
+    # Iterate over the remaining rows and build dictionaries
+    for row in first_sheet.iter_rows(min_row=2, values_only=True):
+        row_strings = [str(cell) if cell is not None else "" for cell in row]
+        row_data = dict(zip(headers, row_strings))
+        data.append(row_data)
+    
+    return data
+
 
 def save_updated_overwrite(in_file, obj):
     """

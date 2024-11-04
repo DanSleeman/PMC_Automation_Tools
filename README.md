@@ -69,6 +69,7 @@ This library serves two main functions.
 * Requests
 * urllib3
 * zeep
+* openpyxl
 
 In order to make classic SOAP calls, you will also need the WSDL files from Plex. 
 

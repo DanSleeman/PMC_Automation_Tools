@@ -8,7 +8,15 @@
 
 [ ] - `api.ux.datasource._xdate()` - Add support for other datetime formats that commonly come from the SQL environment. The current format should match the datetime SQL object. If converted to a varchar, then it will change and not work.
 
-# 0.4.1 [2024-11-4]
+# 0.5.0 [2024-11-4]
+
+## Added
+
+Added dependancy for openpyxl to handle reading in .xlsx files.
+
+Added support to `common.utils.read_updated()` for reading an Excel file for the source data.
+
+Added detailed field error capturing for `UpdateError` class when raised in `driver.ux.driver._banner_handler()` errors.
 
 ## Fixed
 

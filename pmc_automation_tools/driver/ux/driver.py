@@ -88,7 +88,13 @@ class UXDriver(PlexDriver):
             return 
         else:
             banner_text = banner.get_property('textContent')
-            raise UpdateError(banner_text)
+            error_elements = self.driver.find_elements(By.CSS_SELECTOR, 'label.plex-error')
+            error_fields = {}
+            for _el in error_elements:
+                src_id = _el.get_attribute('for')
+                src_name = self.driver.find_element(By.ID, src_id).get_attribute('name')
+                error_fields[src_name] = _el.get_property('textContent')
+            raise UpdateError(banner_text, **error_fields)
     
 
     def wait_for_gears(self, loading_timeout=10) -> None:

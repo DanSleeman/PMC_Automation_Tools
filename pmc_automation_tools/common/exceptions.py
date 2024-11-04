@@ -32,6 +32,7 @@ class UpdateError(PlexAutomateError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
         self.clean_message = args[0].replace('×', '').replace('\n', '').strip()
+        self.detailed_message = str({k:v for k,v in kwargs.items()})
 
 class PlexApiError(PmcAutomationToolsError):
     """A base class for handling exceptions for API calls"""
