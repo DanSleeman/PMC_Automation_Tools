@@ -22,6 +22,8 @@ Added detailed field error capturing for `UpdateError` class when raised in `dri
 
 Fixed `api.ux.datasource.type_reconcile()` when dealing with datetime values.
 
+Fixed `driver.common.wait_for_element()` when using link text selectors and having repeated whitespace and/or non-printing whitespace characters in the search value.
+
 ## Changed
 
 Changed `common.utils.save_updated()` to append single dictionary values to the existing file. If providing a list of dictionaries, the previous full file re-write method will be called instead.

@@ -161,6 +161,9 @@ class PlexDriver(ABC):
             value = args[0]
         else:
             raise TypeError('selector argument not instance of tuple or did not receive 2 positional arguments for "by" and "value".')
+        # Fix for locating link text when the source value contains repeated whitespace or non-printing whitespace characters (tab, newline).
+        if by == 'link text':
+            value = ' '.join(value.split())
         try:
             driver = driver or self.driver
             element_condition = _wait_until.get(type)
