@@ -1,4 +1,5 @@
 # UX Datasource
+from typing import List
 import os
 import json
 from datetime import datetime, date, timedelta, timezone
@@ -20,7 +21,7 @@ from pmc_automation_tools.common.utils import plex_date_formatter
 import requests
 from urllib3.util.retry import Retry
 from itertools import chain
-
+from concurrent.futures import ThreadPoolExecutor
 
 class UXDatetime():
     def __init__(self, datestring):
@@ -63,6 +64,15 @@ class UXDataSourceInput(DataSourceInput):
                 for key, value in template_query.items():
                     setattr(self, key, value)
         self._type_create()
+
+
+    def __repr__(self):
+        _attrs = [f"{k}='{v}'" for k, v in vars(self).items() if not k.startswith('_')]
+        return f"UXDataSourceInput(data_source_key={self.__api_id__}, {', '.join(_attrs)})"
+
+
+    def __str__(self):
+        return '\n'.join([f"{k} : {v}" for k,v in self._query_string.items()])
 
 
     def _query_template_import(self):
@@ -206,7 +216,12 @@ class UXDataSource(DataSource):
         """
         super().__init__(*args, auth=auth, test_db=test_db, pcn_config_file=pcn_config_file, type='ux', **kwargs)
         self.url_db = 'test.' if self._test_db else ''
-    
+
+
+    def __repr__(self):
+        return f"UXDataSource(auth={self.__auth_key__}, test_db={self._test_db}, pcn_config_file={self._pcn_config_file})"
+
+
     def _create_session(self):
         session = requests.Session()
         retry = Retry(total=RETRY_COUNT, connect=RETRY_COUNT, backoff_factor=BACKOFF, status_forcelist=RETRY_STATUSES, raise_on_status=True)
@@ -233,6 +248,13 @@ class UXDataSource(DataSource):
         json_data = response.json()
         return UXDataSourceResponse(query.__api_id__, **json_data)
     
+
+    def call_data_source_threaded(self, query_list:List['UXDataSourceInput']) -> List['UXDataSourceResponse']:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            response_list = list(pool.map(self.call_data_source, query_list))
+        return response_list
+    
+
     def list_data_source_access(self, pcn:HTTPBasicAuth|str|list):
         """
         Get a list of data sources that are enabled for a specific account or any number of accounts.
@@ -271,9 +293,15 @@ class UXDataSourceResponse(DataSourceResponse):
         if getattr(self, 'rowLimitExceeded', False):
             warn('Row limit was exceeded in response. Review input filters and adjust to limit returned data.', category=UserWarning, stacklevel=3)
         if getattr(self, 'errors', []):
-            raise UXResponseErrorLog(self.errors)
+            raise UXResponseErrorLog(self.errors, transaction_no = self.transactionNo)
         self._format_response()
-
+    
+    
+    def __repr__(self):
+        _attrs = [f"{k}='{v}'" for k, v in vars(self).items() if not k.startswith('_')]
+        return f"UXDataSourceResponse(data_source_key={self.__api_id__}, {', '.join(_attrs)})"
+    
+    
     def _format_response(self):
         self._transformed_data = getattr(self, 'rows', [])
         return self._transformed_data

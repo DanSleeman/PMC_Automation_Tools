@@ -14,6 +14,9 @@ from requests.exceptions import HTTPError
 from urllib3.util.retry import Retry
 
 from itertools import chain
+from concurrent.futures import ThreadPoolExecutor
+
+from typing import List
 
 TEST = 'https://test.connect.plex.com'
 PROD = 'https://connect.plex.com'
@@ -22,6 +25,11 @@ class ApiDataSourceInput(DataSourceInput):
     def __init__(self, url: str, method: str, *args, **kwargs):
         super().__init__(url, type='api', *args, **kwargs)
         self._method = method
+    
+    
+    def __repr__(self):
+        _attrs = [f"{k}='{v}'" for k, v in vars(self).items() if not k.startswith('_')]
+        return f"ApiDataSourceInput(url={self.__api_id__}, method={self._method}, {', '.join(_attrs)})"
 
 
     def _update_input_parameters(self):
@@ -43,7 +51,11 @@ class ApiDataSource(DataSource):
         """
         super().__init__(*args, auth=auth, test_db=test_db, type='api', **kwargs)
     
+
+    def __repr__(self):
+        return f"ApiDataSource(auth={self.__auth_key__}, test_db={self._test_db})"
     
+
     def call_data_source(self, pcn:str|list, query:ApiDataSourceInput):
         """
         Returns a list of the json objects as dictionaries from the API response.
@@ -85,7 +97,13 @@ class ApiDataSource(DataSource):
             else:
                 return response
         return ApiDataSourceResponse(query.__api_id__, response_list = list(chain.from_iterable(response_list)))
-    
+
+
+    def call_data_source_threaded(self, query_list:List['ApiDataSourceInput']) -> List['ApiDataSourceResponse']:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            response_list = list(pool.map(self.call_data_source, query_list))
+        return response_list
+
 
 class ApiDataSourceResponse(DataSourceResponse):
     def __init__(self, url, **kwargs):

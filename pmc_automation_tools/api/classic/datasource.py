@@ -8,6 +8,9 @@ from zeep import Client
 from zeep.transports import Transport
 from zeep.helpers import serialize_object
 
+from typing import List
+from concurrent.futures import ThreadPoolExecutor
+
 SOAP_TEST = 'https://testapi.plexonline.com/Datasource/service.asmx'
 SOAP_PROD = 'https://api.plexonline.com/Datasource/service.asmx'
 class ClassicDataSourceInput(DataSourceInput):
@@ -17,13 +20,25 @@ class ClassicDataSourceInput(DataSourceInput):
         super().__init__(data_source_key, *args, type='classic', **kwargs)
         self.__api_id__ = int(self.__api_id__)
 
+
+    def __repr__(self):
+        _attrs = [f"{k}='{v}'" for k, v in vars(self).items() if not k.startswith('_')]
+        return f"ClassicDataSourceInput(data_source_key={self.__api_id__}, {', '.join(_attrs)})"
+
+
+    def __str__(self):
+        _str = [self._delimeter.join(k, str(v)) for k, v in vars(self).items() if not k.startswith('_')]
+        return '\n'.join(_str)
+
+
     def _update_input_parameters(self):
         self._parameter_names = self._delimeter.join([k for k, v in vars(self).items() if not k.startswith('_')])
         self._parameter_values = self._delimeter.join([str(v) for k, v in vars(self).items() if not k.startswith('_')])
 
 
 class ClassicDataSource(DataSource):
-    def __init__(self, auth: HTTPBasicAuth|str, wsdl,
+    def __init__(self, auth: HTTPBasicAuth|str,
+                 wsdl,
                  *args,
                  test_db: bool = True,
                  pcn_config_file: str='resources/pcn_config.json',
@@ -38,6 +53,10 @@ class ClassicDataSource(DataSource):
         """
         super().__init__(*args, auth=auth, test_db=test_db, pcn_config_file=pcn_config_file, type='classic', **kwargs)
         self._wsdl = wsdl
+
+
+    def __repr__(self):
+        return f"ClassicDataSource(auth={self.__auth_key__}, wsdl={self._wsdl}, test_db={self._test_db}, pcn_config_file={self._pcn_config_file})"
 
 
     def call_data_source(self, query:ClassicDataSourceInput) -> 'ClassicDataSourceResponse':
@@ -60,6 +79,12 @@ class ClassicDataSource(DataSource):
         return ClassicDataSourceResponse(query.__api_id__, **_response)
 
 
+    def call_data_source_threaded(self, query_list:List['ClassicDataSourceInput']) -> List['ClassicDataSourceResponse']:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            response_list = list(pool.map(self.call_data_source, query_list))
+        return response_list
+    
+
 class ClassicDataSourceResponse(DataSourceResponse):
     def __init__(self, data_source_key, **kwargs):
         super().__init__(data_source_key, **kwargs)
@@ -75,7 +100,16 @@ class ClassicDataSourceResponse(DataSourceResponse):
             self._result_set = self._result_set['ResultSet'][0]['Rows']['Row']
             self._format_response()
     
-    
+    def __repr__(self):
+        return (f"UXDataSourceResponse(
+                data_source_key={self.__api_id__}, 
+                DataSourceName={self.DataSourceName}, 
+                Message={self.Message}, 
+                Instance={self.InstanceNo}, 
+                StatusNo={self.StatusNo}, 
+                Error={self.Error}, 
+                ErrorNo={self.ErrorNo})")
+
     def _format_response(self):
         self._transformed_data = []
         if hasattr(self, '_result_set'):

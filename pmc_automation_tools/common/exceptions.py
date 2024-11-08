@@ -42,18 +42,20 @@ class ApiError(DataSourceError):...
 class ClassicConnectionError(DataSourceError):...
 
 class UXResponseError(PlexResponseError):
-    def __init__(self, error_dict):
+    def __init__(self, error_dict, **kwargs):
         self.code = error_dict.get('code')
         self.message = error_dict.get('message')
+        self.transaction_no = kwargs.get('transaction_no', '')
 
     def __str__(self):
-        return f"{self.code}: {self.message}"
+        return f"transaction_no: {self.transaction_no} - {self.code}: {self.message}"
     def __repr__(self):
         return f"<ErrorDetail(code={self.code}, message={self.message})>"
 class UXResponseErrorLog(PlexResponseError):
-    def __init__(self, error_dicts):
-        self.errors = [UXResponseError(err) for err in error_dicts]
-    
+    def __init__(self, error_dicts, **kwargs):
+        self.transaction_no = kwargs.get('transaction_no', '')
+        self.errors = [UXResponseError(err, transaction_no = self.transaction_no) for err in error_dicts]
+        
     def __getitem__(self, index):
         return self.errors[index]
 
@@ -61,7 +63,7 @@ class UXResponseErrorLog(PlexResponseError):
         return len(self.errors)
 
     def __str__(self):
-        return "\n".join(str(error) for error in self.errors)
+        return self.transaction_no + "\n".join(str(error) for error in self.errors)
 
     def __repr__(self):
         return f"<UXResponseErrorLog with {len(self)} errors>"

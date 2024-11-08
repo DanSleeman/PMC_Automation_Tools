@@ -18,15 +18,25 @@ Added support to `common.utils.read_updated()` for reading an Excel file for the
 
 Added detailed field error capturing for `UpdateError` class when raised in `driver.ux.driver._banner_handler()` errors.
 
+Added various `__repr__` and `__str__` methods for datasource objects.
+
+Added `plex_date_formatter()` to `__init__.py`.
+
 ## Fixed
 
 Fixed `api.ux.datasource.type_reconcile()` when dealing with datetime values.
 
 Fixed `driver.common.wait_for_element()` when using link text selectors and having repeated whitespace and/or non-printing whitespace characters in the search value.
 
+Fixed `common.utils.save_updated()` for instances when a single length list was provided as the input.
+
+Fixed `common.utils.plex_date_formatter()` to hopefully work when run in any country. (Should always use local time in New York Eastern coded as UTC)
+
 ## Changed
 
 Changed `common.utils.save_updated()` to append single dictionary values to the existing file. If providing a list of dictionaries, the previous full file re-write method will be called instead.
+
+Rewrote `common.utils.setup_logger()` to be less complicated and include memoryhandler/streamhandler support.
 
 # 0.4.0 [2024-11-1]
 

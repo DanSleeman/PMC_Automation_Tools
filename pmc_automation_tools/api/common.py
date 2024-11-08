@@ -127,6 +127,7 @@ class DataSource(ABC):
         self._test_db = test_db
         self._pcn_config_file = pcn_config_file
         self.__datasource_type__ = type
+        self.__auth_key__ = auth
         self._auth = self.set_auth(kwargs.get('pcn', auth))
 
 

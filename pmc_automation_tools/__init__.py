@@ -1,7 +1,7 @@
 from pmc_automation_tools.api.ux.datasource import UXDataSource, UXDataSourceInput
 from pmc_automation_tools.api.classic.datasource import ClassicDataSource, ClassicDataSourceInput
 from pmc_automation_tools.api.datasource import ApiDataSource, ApiDataSourceInput
-from pmc_automation_tools.common.utils import debug_logger, create_batch_folder, setup_logger, read_updated, save_updated, chunk_list
+from pmc_automation_tools.common.utils import debug_logger, create_batch_folder, setup_logger, read_updated, save_updated, chunk_list, plex_date_formatter
 from pmc_automation_tools.driver.ux.driver import UXDriver
 from pmc_automation_tools.driver.classic.driver import ClassicDriver
 from pmc_automation_tools.driver.generic import GenericDriver
@@ -32,5 +32,6 @@ __all__ = [
     "CLICKABLE",
     "EXISTS",
     "GenericDriver",
-    "chunk_list"
+    "chunk_list",
+    "plex_date_formatter"
 ]
