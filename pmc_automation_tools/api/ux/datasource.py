@@ -26,20 +26,25 @@ from concurrent.futures import ThreadPoolExecutor
 class UXDatetime():
     def __init__(self, datestring):
         self.datestring = datestring
-        self._dateparse()
+        self.datasource_date = None if self.datestring == '' else self._dateparse()
     def __repr__(self):
         return f"UXDatetime(datestring='{self.datestring}', datasource_date='{self.datasource_date}')"
     def __str__(self):
-        return self.datasource_date
+        return f"{self.datasource_date}"
 
 
     def _dateparse(self):
-        try:
-            self.plex_date = datetime.strptime(self.datestring, '%m/%d/%Y %I:%H:%S %p')
-            self.datasource_date = plex_date_formatter(self.plex_date)
-        except:
-            self.plex_date = None
-            self.datasource_date = None if self.datestring == '' else "Invalid Datetime Format"
+        formats = ["%m/%d/%Y %I:%M:%S %p", "%b %d %Y %I:%M%p"]
+        # When converting datetime objects to varchars, the format is using spaces for padding rather than zeroes.
+        standardized_datestring = ' '.join(self.datestring.split())
+        for f in formats:
+            try:
+                self.plex_date = datetime.strptime(standardized_datestring, f)
+                return plex_date_formatter(self.plex_date)
+            except:
+                continue
+        self.plex_date = None
+        return "Invalid Datetime Format"
 
 
     def to_json(self):

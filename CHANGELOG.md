@@ -6,7 +6,7 @@
 
 [ ] - `driver.clssic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
-[ ] - `api.ux.datasource._xdate()` - Add support for other datetime formats that commonly come from the SQL environment. The current format should match the datetime SQL object. If converted to a varchar, then it will change and not work.
+[x] - `api.ux.datasource._xdate()` - Add support for other datetime formats that commonly come from the SQL environment. The current format should match the datetime SQL object. If converted to a varchar, then it will change and not work.
 
 # 0.5.0 [2024-11-4]
 
@@ -35,6 +35,8 @@ Fixed `common.utils.save_updated()` for instances when a single length list was 
 Fixed `common.utils.plex_date_formatter()` to hopefully work when run in any country. (Should always use local time in New York Eastern coded as UTC)
 
 Fixed `common.utils.read_updated()` for instances where the file exists, but is empty. Should return the default empty object now.
+
+Fixed `UXDatetime` class to support the different date formats that could come from Plex SQL reports.
 
 ## Changed
 
