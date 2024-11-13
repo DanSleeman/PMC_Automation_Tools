@@ -22,6 +22,8 @@ Added various `__repr__` and `__str__` methods for datasource objects.
 
 Added `plex_date_formatter()` to `__init__.py`.
 
+`common.utils.save_updated()` Added input to overwrite the file contents regardless of the input object.
+
 ## Fixed
 
 Fixed `api.ux.datasource.type_reconcile()` when dealing with datetime values.
@@ -32,11 +34,15 @@ Fixed `common.utils.save_updated()` for instances when a single length list was 
 
 Fixed `common.utils.plex_date_formatter()` to hopefully work when run in any country. (Should always use local time in New York Eastern coded as UTC)
 
+Fixed `common.utils.read_updated()` for instances where the file exists, but is empty. Should return the default empty object now.
+
 ## Changed
 
 Changed `common.utils.save_updated()` to append single dictionary values to the existing file. If providing a list of dictionaries, the previous full file re-write method will be called instead.
 
 Rewrote `common.utils.setup_logger()` to be less complicated and include memoryhandler/streamhandler support.
+
+Added support to return the full item in `DataSourceResponse.get_response_attribute()` using 'ALL' as the input variable.
 
 # 0.4.0 [2024-11-1]
 

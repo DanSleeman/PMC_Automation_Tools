@@ -221,18 +221,27 @@ class DataSourceResponse(ABC):
         - attribute: attribute name(s) from the response to return
         - preserve_list: Pass true to retain a list of attributes even if a single item is found.
         - kwargs: arbitrary number of attribute=value filters to use when searching for a specific attribute to return.
+                  prefix the value filters with "!" if the value should be excluded.
 
         Returns:
 
         - attribute(s) matching the criteria
         """
+        all_attr = True if attribute == 'ALL' else False
         if not isinstance(attribute, tuple):
             attribute = (attribute,)
+        
         attr_list = []
         for item in self._transformed_data:
-            if not kwargs or all(item.get(k) in v if isinstance(v, list) else item.get(k) == v for k, v in kwargs.items()):
+            if not kwargs or all(
+                (item.get(k) not in v if isinstance(v, list) and v and str(v[0]).startswith("!") 
+                 else item.get(k) != v[1:] if isinstance(v, str) and v.startswith("!") 
+                 else item.get(k) in v if isinstance(v, list) 
+                 else item.get(k) == v)
+                for k, v in kwargs.items()
+            ):
                 # Extract attributes for each item as a tuple (even for a single attribute)
-                values = tuple(item.get(attr) for attr in attribute)
+                values = item if all_attr else tuple(item.get(attr) for attr in attribute)
                 # If single attribute, unpack the tuple, otherwise append the tuple
                 attr_list.append(values[0] if len(values) == 1 else values)
         return attr_list[0] if len(attr_list) == 1 and not preserve_list else attr_list

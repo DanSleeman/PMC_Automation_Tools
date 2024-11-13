@@ -160,7 +160,7 @@ def read_updated(in_file:str, obj_type:Union[dict, list]=None) -> Union[List[Dic
     _file_type = in_file.split('.')[-1].lower()
     if _file_type == 'xlsx':
         return _read_excel(in_file)
-    if os.path.exists(in_file):
+    if os.path.exists(in_file) and os.path.getsize(in_file) > 0:
         with open(in_file, 'r', encoding='utf-8-sig') as f:
             if _file_type == 'json':
                 updated_records = json.load(f)
@@ -230,7 +230,7 @@ def save_updated_overwrite(in_file:str, obj:dict) -> None:
             raise TypeError('File name provided is not an expected type of json or csv.')
         
 
-def save_updated(in_file:str, obj:Union[dict, list]) -> None:
+def save_updated(in_file:str, obj:Union[dict, list], overwrite:bool=False) -> None:
     """
     Append to a file containing a list of already processed records.
 
@@ -238,10 +238,11 @@ def save_updated(in_file:str, obj:Union[dict, list]) -> None:
     
     - in_file: file to use to save
     - obj: json object to write to file.
+    - overwrite: use the overwrite version of the update regardless of provided object.
     """
     if not obj:
         return
-    if isinstance(obj, list):
+    if isinstance(obj, list) or overwrite:
         return save_updated_overwrite(in_file, obj)
     obj = [obj]
     _file_type = in_file.split('.')[-1].lower()
