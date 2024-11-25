@@ -399,15 +399,17 @@ class PlexElement(WebElement):
             self.debug_logger.debug(f'{self.get_property("name")} - Checkbox state: {check_state} matches provided state: {bool_state}.')
 
 
-    def sync_textbox(self, text_content:str, clear:bool=False):
+    def sync_textbox(self, text_content:str, clear:bool=False) -> Union[str|None]:
         """Sync a textbox with the provided value
 
         Args:
             text_content (str): Desired value for the text box
             clear (bool, optional): Clear out the text box if sending an empty string. Defaults to False.
+        Returns:
+            original text if value doesn't match provided text_content
         """
         if not text_content and not clear:
-            return
+            return None
         text = self.get_property('value')
         if not text == text_content:
             text_content = text_content.replace('\t', ' ') # The input will break if sending tab characters. This should only happen when a copy/paste from word/excel was done on the original field text.
@@ -415,8 +417,10 @@ class PlexElement(WebElement):
             self.clear()
             self.send_keys(text_content)
             self.send_keys(Keys.TAB)
+            return text
         else:
             self.debug_logger.debug(f'{self.get_property("name")} - Current text: {text}. Matches provided text: {text_content}')
+            return None
 
     @abstractmethod
     def sync_picker(self):...

@@ -244,5 +244,7 @@ class DataSourceResponse(ABC):
                 values = item if all_attr else tuple(item.get(attr) for attr in attribute)
                 # If single attribute, unpack the tuple, otherwise append the tuple
                 attr_list.append(values[0] if len(values) == 1 else values)
+        if len(attr_list) == 0:
+            return None
         return attr_list[0] if len(attr_list) == 1 and not preserve_list else attr_list
     get_attribute = get_response_attribute

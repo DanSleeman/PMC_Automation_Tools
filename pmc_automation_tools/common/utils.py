@@ -139,7 +139,7 @@ def setup_logger(name:str,
             logger.addHandler(stream_handler)
     return logger
 
-def read_updated(in_file:str, obj_type:Union[dict, list]=None) -> Union[List[Dict[str, str]],Any]: 
+def read_updated(in_file:str, obj_type:Union[dict, list]=None, sheet_name:str=None) -> Union[List[Dict[str, str]],Any]: 
     
     """
     Read in a file of already updated records.
@@ -158,8 +158,8 @@ def read_updated(in_file:str, obj_type:Union[dict, list]=None) -> Union[List[Dic
         obj_type = []
     updated_records = obj_type
     _file_type = in_file.split('.')[-1].lower()
-    if _file_type == 'xlsx':
-        return _read_excel(in_file)
+    if _file_type in ['xlsx', 'xlsm']:
+        return _read_excel(in_file, sheet_name)
     if os.path.exists(in_file) and os.path.getsize(in_file) > 0:
         with open(in_file, 'r', encoding='utf-8-sig') as f:
             if _file_type == 'json':
@@ -172,7 +172,7 @@ def read_updated(in_file:str, obj_type:Union[dict, list]=None) -> Union[List[Dic
     return updated_records
 
 
-def _read_excel(file_path:str) -> List[Dict[str, str]]:
+def _read_excel(file_path:str, sheet_name:str=None) -> List[Dict[str, str]]:
     """
     Reads the contents of the first sheet in an Excel (.xlsx) file.
 
@@ -191,7 +191,13 @@ def _read_excel(file_path:str) -> List[Dict[str, str]]:
             user_input = input("\n[WARNING] The file is currently in use. Please close the file and press Enter to try again, or type 'cancel' to stop: ")
             if user_input.lower() == 'cancel':
                 return []
-    first_sheet = workbook.active  # This gets the first sheet in the workbook
+    sheets = workbook.sheetnames
+    if sheet_name is None:
+        first_sheet = workbook[sheets[0]]
+    elif sheet_name in sheets:
+        first_sheet = workbook[sheet_name]
+    else:
+        raise ValueError(f"Sheet name {sheet_name} not found in workbook.")
     data = []
     
     # Get the headers (first row)
