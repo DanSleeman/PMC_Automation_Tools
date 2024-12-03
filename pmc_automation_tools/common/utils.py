@@ -284,7 +284,7 @@ def save_updated(in_file:str, obj:Union[dict, list], overwrite:bool=False) -> No
         raise TypeError('File name provided is not an expected type of json or csv.')
     
 
-def plex_date_formatter(*args: datetime|int, date_offset:int=0, tz_convert:bool=True) -> str:
+def plex_date_formatter(*args: datetime|int, date_offset:int=0, tz_convert:bool=True, tz:str="America/New_York") -> str:
     """
     Takes 'normal' date formats and converts them to a Plex web service format (ISO format)
     Can also take a single datetime object.
@@ -300,8 +300,8 @@ def plex_date_formatter(*args: datetime|int, date_offset:int=0, tz_convert:bool=
     else:
         _date = datetime(*args)
     if tz_convert:
-        ny_tz = pytz.timezone("America/New_York")
-        _date = ny_tz.localize(_date).astimezone(timezone.utc)
+        _tz = pytz.timezone(tz)
+        _date = _tz.localize(_date).astimezone(timezone.utc)
     _date += timedelta(days=date_offset)
     f_date = _date.strftime('%Y-%m-%dT%H:%M:%SZ')
     return f_date

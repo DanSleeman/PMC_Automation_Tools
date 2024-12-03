@@ -8,6 +8,12 @@
 
 [x] - `api.ux.datasource._xdate()` - Add support for other datetime formats that commonly come from the SQL environment. The current format should match the datetime SQL object. If converted to a varchar, then it will change and not work.
 
+# 0.5.1 [2024-12-3]
+
+## Added
+
+Added tz input to `common.utils.plex_date_formatter()` to allow for converting times based in other locations to UTC. Not usually needed for dealing with Plex SQL, but could be helpful.
+
 # 0.5.0 [2024-11-4]
 
 ## Added
