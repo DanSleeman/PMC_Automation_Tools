@@ -399,6 +399,31 @@ class PlexElement(WebElement):
             self.debug_logger.debug(f'{self.get_property("name")} - Checkbox state: {check_state} matches provided state: {bool_state}.')
 
 
+    def insert_text(self, text_content: str, position: int = 0):
+        """
+        Insert text at the specified position in a textbox.
+        
+        Args:
+            text_content (str): The text to insert.
+            position (int, optional): The position to insert the text (0 for start, -1 for end, or any valid index).
+        """
+        text_content = text_content.replace('\t', ' ')
+        
+        existing_text = self.get_property('value')
+        text_length = len(existing_text)
+        
+        if position < 0:
+            position = text_length + position + 1  # Adjust for negative indexing
+        position = max(0, min(position, text_length))  # Ensure position is within valid bounds
+        
+        self.send_keys(Keys.CONTROL, Keys.HOME)  # Move to start
+        for _ in range(position):
+            self.send_keys(Keys.ARROW_RIGHT)  # Navigate to the target position
+
+        self.send_keys(text_content)
+        self.send_keys(Keys.TAB)
+
+
     def sync_textbox(self, text_content:str, clear:bool=False) -> Union[str|None]:
         """Sync a textbox with the provided value
 

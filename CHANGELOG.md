@@ -14,6 +14,8 @@
 
 Added tz input to `common.utils.plex_date_formatter()` to allow for converting times based in other locations to UTC. Not usually needed for dealing with Plex SQL, but could be helpful.
 
+Added `driver.common.insert_text()` method to `PlexElement` class. Allows to insert text into a field at a specific position without removing anything.
+
 # 0.5.0 [2024-11-4]
 
 ## Added
