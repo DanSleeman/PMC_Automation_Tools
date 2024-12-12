@@ -226,8 +226,14 @@ class UXDriver(PlexDriver):
             raise LoginError(self.environment, self.db, self.pcn_name, 'Login page not detected. Please validate login credentials and try again.')
         
     
-    def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0) -> 'UXPlexElement':
+    def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0):
         """
+        Clicks a row in a grid with a matching value in the column provided.
+
+        Args:
+            value (str): cell contents to use for finding a matching row
+            column (str|int): the column name or index of the column that should be used for matching
+            row_offset(int): if there are multiple matching rows, the offset can be used to indicate which of them should be highlighted.
         """
         column_match = None
         if isinstance(column, str):
