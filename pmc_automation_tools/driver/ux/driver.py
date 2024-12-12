@@ -19,7 +19,9 @@ from selenium.webdriver.support.ui import Select
 from pmc_automation_tools.common.exceptions import (
     UpdateError,
     NoRecordError,
-    LoginError
+    LoginError,
+    GridColumnError,
+    GridRowError
     )
 import time
 BANNER_SUCCESS = 1
@@ -40,7 +42,6 @@ class UXDriver(PlexDriver):
         super().__init__(environment='ux', *args, driver_type=driver_type, **kwargs)
         for k, v in kwargs.items():
             setattr(self, k, v)
-
 
     def wait_for_element(self, selector, *args, driver:Union['UXDriver','UXPlexElement']=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
         return super().wait_for_element(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=UXPlexElement)
@@ -224,6 +225,31 @@ class UXDriver(PlexDriver):
         if not any(url_part in url.upper() for url_part in SIGNON_URL_PARTS):
             raise LoginError(self.environment, self.db, self.pcn_name, 'Login page not detected. Please validate login credentials and try again.')
         
+    
+    def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0) -> 'UXPlexElement':
+        """
+        """
+        column_match = None
+        if isinstance(column, str):
+            # There are usually two thead elements for any given grid. However, they should both work for finding the proper column index for a given column title.
+            _plex_grid_header = self.driver.find_element(By.TAG_NAME, 'thead')
+            _header_cells = _plex_grid_header.find_elements(By.CLASS_NAME, 'plex-grid-header-cell')
+            for i, h in enumerate(_header_cells):
+                abbr = h.find_elements(By.TAG_NAME, 'abbr')
+                if len(abbr) > 0:
+                    if abbr[0].get_attribute('textContent') == column:
+                        column_match = i
+                        break
+            if column_match is None:
+                raise GridColumnError(f'No column detected in the table matching provided value: {column}.')
+            column = column_match
+        row = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}][text()='{value}']")
+        if len(row) == 0:
+            raise GridRowError(f"Plex grid row not found for column index {column} containing value: {value}.")
+        if len(row) > 1:
+            print(f"Multiple rows match the provided text content. Selecting row number {row_offset} from these results.")
+        row[row_offset].click()
+        return None
 
 
 class UXPlexElement(PlexElement):

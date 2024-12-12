@@ -8,8 +8,14 @@
 
 [x] - `api.ux.datasource._xdate()` - Add support for other datetime formats that commonly come from the SQL environment. The current format should match the datetime SQL object. If converted to a varchar, then it will change and not work.
 
-[ ] - `driver.ux.driver` - Create a method for locating and selecting a row in a grid based on a certain column's cell value.  
+[x] - `driver.ux.driver` - Create a method for locating and selecting a row in a grid based on a certain column's cell value.  
                             XPATH Example: "//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index=0][text()='CNC053']"
+
+# 0.6.0 [2024-12-12]
+
+## Added
+
+Added method for highlighting a UX row to allow for relevant action bar items to be clicked.
 
 # 0.5.1 [2024-12-3]
 

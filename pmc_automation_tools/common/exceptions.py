@@ -13,6 +13,12 @@ class PlexAutomateError(PmcAutomationToolsError):
             setattr(self, key, value)
 class NoRecordError(PlexAutomateError):
     """Thrown when no records exist in a picker selection."""
+class GridError(PlexAutomateError):
+    """General Plex UX grid related error."""
+class GridColumnError(GridError):
+    """Thrown when a matching column name is not found."""
+class GridRowError(GridError):
+    """Thrown when a matching row value is not found."""
 class ActionError(PlexAutomateError):
     """Thrown if there is an error on clicking an action bar item."""
     def __init__(self, *args, **kwargs):
