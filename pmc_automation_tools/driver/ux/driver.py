@@ -320,7 +320,22 @@ class UXPlexElement(PlexElement):
             self.debug_logger.info(f'No matching selection available for {text_content}')
             raise NoRecordError(f'No matching selection available for {text_content}')
         
-
+    def _check_existing_multiple(self, text_content):
+        # TODO 12/13/2024 Work on developing this.
+        # Needs to check for the text values of each element in the picker and compare it against the provided list of values.
+        # Lists should be able to be in any order for comparison
+        try:
+            self.debug_logger.debug('Trying to locate an existing selected item.')
+            selected_elements = self.driver.find_elements(By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']")
+            if len(selected_elements) > 0: # Should always only be 1 element
+                current_text = selected_elements[0].find_elements(By.CLASS_NAME, 'plex-picker-item-text')
+                if len(current_text) > 0:
+                    compare_value = [c.get_property('textContent') for c in current_text]
+                    if text_content == compare_value:
+                        return True
+        except (NoSuchElementException, TimeoutException):
+            self.debug_logger.debug('No initial selected item detected.')
+        return False
     def _check_existing_selection(self, text_content):
         try:
             self.debug_logger.debug('Trying to locate an existing selected item.')
