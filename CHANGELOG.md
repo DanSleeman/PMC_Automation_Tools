@@ -11,6 +11,12 @@
 [x] - `driver.ux.driver` - Create a method for locating and selecting a row in a grid based on a certain column's cell value.  
                             XPATH Example: "//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index=0][text()='CNC053']"
 
+# 0.6.1 [2024-12-13]
+
+## Fixed
+
+Fixed `highlight_row` method for instances where the cell content to match is a hyperlink.
+
 # 0.6.0 [2024-12-12]
 
 ## Added

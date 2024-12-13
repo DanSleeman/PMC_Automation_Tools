@@ -249,12 +249,16 @@ class UXDriver(PlexDriver):
             if column_match is None:
                 raise GridColumnError(f'No column detected in the table matching provided value: {column}.')
             column = column_match
-        row = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}][text()='{value}']")
-        if len(row) == 0:
+        rows = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]")
+        matching_rows = []
+        for r in rows:
+            if r.get_property('textContent') == value:
+                matching_rows.append(r)
+        if len(matching_rows) == 0:
             raise GridRowError(f"Plex grid row not found for column index {column} containing value: {value}.")
-        if len(row) > 1:
+        if len(matching_rows) > 1:
             print(f"Multiple rows match the provided text content. Selecting row number {row_offset} from these results.")
-        row[row_offset].click()
+        matching_rows[row_offset].find_element(By.XPATH, '..').click() # Click the TR element to avoid clicking a hyperlink in the TD
         return None
 
 
