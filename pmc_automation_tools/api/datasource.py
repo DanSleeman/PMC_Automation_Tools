@@ -17,6 +17,7 @@ from itertools import chain
 from concurrent.futures import ThreadPoolExecutor
 
 from typing import List
+from datetime import datetime
 
 TEST = 'https://test.connect.plex.com'
 PROD = 'https://connect.plex.com'
@@ -68,6 +69,7 @@ class ApiDataSource(DataSource):
         - query: ApiDataSourceInput
             - DataSourceInput containing the connection parameters
         """
+        start = datetime.now()
         if self._test_db:
             query.__api_id__ = query.__api_id__.replace(PROD, TEST)
         response_list = []
@@ -96,7 +98,8 @@ class ApiDataSource(DataSource):
                         response_list.append([response.json()])
             else:
                 return response
-        return ApiDataSourceResponse(query.__api_id__, response_list = list(chain.from_iterable(response_list)))
+        end = datetime.now() - start
+        return ApiDataSourceResponse(query.__api_id__, response_list = list(chain.from_iterable(response_list)), time_taken = end)
 
 
     def call_data_source_threaded(self, query_list:List['ApiDataSourceInput']) -> List['ApiDataSourceResponse']:

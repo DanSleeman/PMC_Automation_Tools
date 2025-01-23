@@ -15,7 +15,11 @@ from selenium.webdriver.support.ui import Select
 
 class GenericDriver(PlexDriver):
     def __init__(self, driver_type: Literal['edge', 'chrome'], *args, **kwargs):
-        super().__init__(environment='ux', *args, driver_type=driver_type, **kwargs)
+        # super().__init__(environment='ux', *args, driver_type=driver_type, **kwargs)
+        self.driver_type = driver_type
+        self.download_dir = kwargs.get('download_dir','')
+        self.debug_level = kwargs.get('debug_level', 0)
+        self.headless = kwargs.get('headless', False)
         for k, v in kwargs.items():
             setattr(self, k, v)
     

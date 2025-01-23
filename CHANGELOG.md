@@ -11,6 +11,18 @@
 [x] - `driver.ux.driver` - Create a method for locating and selecting a row in a grid based on a certain column's cell value.  
                             XPATH Example: "//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index=0][text()='CNC053']"
 
+# 0.6.2 [2025-1-23]
+
+## Changed
+
+Changed GenericDriver to rely less on Plex specific attributes for functionality.
+* No longer supers the init function as many of the attributes are not used and cause issues when missing.
+* Defaults various attributes that are baked into the driver setup functions
+
+## Added
+
+Added time_taken attribute to `api.datasource.call_datasource()` response
+
 # 0.6.1 [2024-12-13]
 
 ## Fixed

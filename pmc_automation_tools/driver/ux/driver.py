@@ -325,7 +325,7 @@ class UXPlexElement(PlexElement):
         # Needs to check for the text values of each element in the picker and compare it against the provided list of values.
         # Lists should be able to be in any order for comparison
         try:
-            self.debug_logger.debug('Trying to locate an existing selected item.')
+            self.debug_logger.debug('Trying to locate an existing selected items.')
             selected_elements = self.driver.find_elements(By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']")
             if len(selected_elements) > 0: # Should always only be 1 element
                 current_text = selected_elements[0].find_elements(By.CLASS_NAME, 'plex-picker-item-text')
