@@ -101,14 +101,14 @@ class ClassicDataSourceResponse(DataSourceResponse):
             self._format_response()
     
     def __repr__(self):
-        return (f"UXDataSourceResponse(
-                data_source_key={self.__api_id__}, 
-                DataSourceName={self.DataSourceName}, 
-                Message={self.Message}, 
-                Instance={self.InstanceNo}, 
-                StatusNo={self.StatusNo}, 
-                Error={self.Error}, 
-                ErrorNo={self.ErrorNo})")
+        return (f"UXDataSourceResponse("
+                f"data_source_key={self.__api_id__}, "
+                f"DataSourceName={self.DataSourceName}, "
+                f"Message={self.Message}, "
+                f"Instance={self.InstanceNo}, "
+                f"StatusNo={self.StatusNo}, "
+                f"Error={self.Error}, "
+                f"ErrorNo={self.ErrorNo})")
 
     def _format_response(self):
         self._transformed_data = []

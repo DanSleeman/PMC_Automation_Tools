@@ -10,6 +10,11 @@
 
 [x] - `driver.ux.driver` - Create a method for locating and selecting a row in a grid based on a certain column's cell value.  
                             XPATH Example: "//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index=0][text()='CNC053']"
+# 0.6.3 [2025-1-28]
+
+## Fixed
+
+Fixed incorrectly formatted `__repl__` method in `api.classic.datasource.py`
 
 # 0.6.2 [2025-1-23]
 
