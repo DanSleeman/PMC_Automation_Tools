@@ -167,8 +167,13 @@ class DataSource(ABC):
         else:
             with open(self._pcn_config_file, 'r', encoding='utf-8') as c:
                 self.launch_pcn_dict = json.load(c)
-            username = self.launch_pcn_dict[key]['api_user']
-            password = self.launch_pcn_dict[key]['api_pass']
+            if key not in self.launch_pcn_dict.keys():
+                print(f'Provided auth key {key} not in config file. Update the file or enter your credentials now.')
+                username = input('Webservice username:')
+                password = input('Webservice password:')
+            else:
+                username = self.launch_pcn_dict[key]['api_user']
+                password = self.launch_pcn_dict[key]['api_pass']
         return HTTPBasicAuth(username, password)
     
     @abstractmethod
