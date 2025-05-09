@@ -16,6 +16,10 @@
 
 Fixed issue with not being able to manually input datasource credentials when a file exists, but the key is not present.
 
+Fix to `plex_date_formatter()` to support date objects as `arg[0]` input without throwing exceptions for timezone conversions.
+
+Fix to `UXPlexElement.sync_textbox()` when using `int` type inputs. Converts these to strings to avoid any issues with string functions.
+
 # 0.6.3 [2025-1-28]
 
 ## Fixed

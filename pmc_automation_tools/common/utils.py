@@ -295,8 +295,10 @@ def plex_date_formatter(*args: datetime|int, date_offset:int=0, tz_convert:bool=
         date_offset arg will add days to the provided time
         Useful when providing just a datetime object to the function
     """
-    if isinstance(args[0], (datetime, date)):
+    if isinstance(args[0], datetime):
         _date = args[0]
+    elif isinstance(args[0], date):
+        _date = datetime.combine(args[0], datetime.min.time())
     else:
         _date = datetime(*args)
     if tz_convert:

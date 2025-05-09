@@ -433,6 +433,8 @@ class PlexElement(WebElement):
         Returns:
             original text if value doesn't match provided text_content
         """
+        if isinstance(text_content, int):
+            text_content = str(text_content)
         if not text_content and not clear:
             return None
         text = self.get_property('value')
