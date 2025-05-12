@@ -20,6 +20,12 @@ Fix to `plex_date_formatter()` to support date objects as `arg[0]` input without
 
 Fix to `UXPlexElement.sync_textbox()` when using `int` type inputs. Converts these to strings to avoid any issues with string functions.
 
+## Added
+
+Added function to find an element using the element's text label. `find_element_by_label()`
+
+Added support to `UXPlexElement` for universal `sync()` method when using above function to locate the element.
+
 # 0.6.3 [2025-1-28]
 
 ## Fixed

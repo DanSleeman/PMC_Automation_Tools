@@ -6,7 +6,8 @@ from pmc_automation_tools.driver.common import (
     INVISIBLE,
     CLICKABLE,
     EXISTS,
-    SIGNON_URL_PARTS
+    SIGNON_URL_PARTS,
+    _wait_until
     )
 from selenium.common.exceptions import (
     TimeoutException,
@@ -15,7 +16,7 @@ from selenium.common.exceptions import (
     )
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import Select, WebDriverWait
 from pmc_automation_tools.common.exceptions import (
     UpdateError,
     NoRecordError,
@@ -50,6 +51,32 @@ class UXDriver(PlexDriver):
     def wait_for_elements(self, selector, *args, driver:Union['UXDriver','UXPlexElement']=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
         return super().wait_for_elements(selector, *args, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception, element_class=UXPlexElement)
 
+
+    def find_element_by_label(self, label, driver=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
+        try:
+            by = By.XPATH
+            value = f"//label[text()='{label}']/ancestor::div[contains(@class,'plex-control-group')]//div[contains(@class,'plex-controls')]"
+            input_wrapper = self.wait_for_element(by, value, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception)
+            if input_wrapper:
+                value = "./*[1]"
+                child_element = UXPlexElement(input_wrapper.find_element(by, value), self)
+                child_tag = child_element.tag_name
+                child_class = child_element.get_attribute('class')
+                if child_tag == 'input':
+                    child_element.sync_type = child_element.get_attribute('type')
+                elif child_tag == 'div' and child_class == 'plex-picker-control':
+                    value = f".//input"
+                    child_element = UXPlexElement(input_wrapper.find_element(by, value), self)
+                    child_element.sync_type = 'picker'
+                elif child_tag == 'div' and child_class == 'plex-select-wrapper':
+                    value = f".//select"
+                    child_element = UXPlexElement(input_wrapper.find_element(by, value), self)
+                    child_element.sync_type = 'picker'
+                return child_element
+        except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
+            if ignore_exception:
+                return None
+            raise
 
     def wait_for_banner(self, timeout:int=10, ignore_exception:bool=False) -> None:
         """Wait for the banner to appear and handle success/error/warning messages.
@@ -266,6 +293,19 @@ class UXPlexElement(PlexElement):
     def __init__(self, webelement, parent):
         super().__init__(webelement, parent)
 
+    def sync(self, value):
+        if hasattr(self, 'sync_type'):
+            match self.sync_type:
+                case 'checkbox':
+                    self.sync_checkbox(value)
+                case 'text':
+                    self.sync_textbox(value)
+                case 'picker':
+                    self.sync_picker(value)
+                case _:
+                    raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, textbox, picker')
+        else:
+            raise AttributeError(f'UXPlexElement object does not have a defined attribute type.')
 
     def sync_picker(self, text_content:str, clear:bool=False, date:bool=False, column_delimiter:str='\t') -> None:
         """Sync the picker element to the provided value.
