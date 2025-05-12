@@ -7,7 +7,6 @@ from pmc_automation_tools.driver.common import (
     CLICKABLE,
     EXISTS,
     SIGNON_URL_PARTS,
-    _wait_until
     )
 from selenium.common.exceptions import (
     TimeoutException,
@@ -16,7 +15,7 @@ from selenium.common.exceptions import (
     )
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support.ui import Select
 from pmc_automation_tools.common.exceptions import (
     UpdateError,
     NoRecordError,
