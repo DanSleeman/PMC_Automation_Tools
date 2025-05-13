@@ -98,7 +98,8 @@ def setup_logger(name:str,
                  formatter:str=DEFAULT_FORMATTER,
                  root_dir:str=None,
                  flush_level:Union[int, str]=logging.ERROR,
-                 write_stdout:bool=True) -> logging.Logger:
+                 write_stdout:bool=True,
+                 propagate:bool=False) -> logging.Logger:
     """
     Setup a logger with a memory buffer that flushes on errors, and optionally outputs to stdout.
 
@@ -111,6 +112,7 @@ def setup_logger(name:str,
     - root_dir: root directory to store the log file.
     - flush_level: log level to trigger flushing to the file.
     - write_stdout: if True, logs will also be printed to stdout.
+    - propagate: Do not propogate the logger. Default False since the debug_logger method breaks if it is a parent logger.
 
     Default formatter: %(asctime)s - %(name)s - %(levelname)s - %(message)s
     """
@@ -128,6 +130,7 @@ def setup_logger(name:str,
     )
     
     logger = logging.getLogger(name)
+    logger.propagate = propagate
     logger.setLevel(level)
     
     if not logger.hasHandlers():

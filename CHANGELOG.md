@@ -32,6 +32,8 @@ Added function aliases for `wait_for_gears()` and `wait_for_banner()` to UXDrive
 
 Added support for `sync_checkbox()` input to accept multiple options for truthiness. True, 1, "1", "True", "TRUE" should all evaluate to True.
 
+Changed `setup_logger()` function to always add a handler regardless of any parent handlers. Can be overwritten by passing propagate=True.
+
 # 0.6.3 [2025-1-28]
 
 ## Fixed
