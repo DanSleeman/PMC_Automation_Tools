@@ -62,18 +62,16 @@ class UXDriver(PlexDriver):
                 child_element = UXPlexElement(input_wrapper.find_element(by, first_child), self)
                 child_tag = child_element.tag_name
                 child_class = child_element.get_attribute('class')
-                if child_tag == 'input':
-                    child_element.sync_type = child_element.get_attribute('type')
-                elif child_tag == 'div':
+                if child_tag == 'div':
+                    if child_class == 'plex-controls-element':
+                        child_element = UXPlexElement(child_element.find_element(by, first_child), self)
+                        child_class = child_element.get_attribute('class')
                     if child_class == 'plex-picker-control':
                         child_element = UXPlexElement(input_wrapper.find_element(by, ".//input"), self)
-                        child_element.sync_type = 'picker'
                     elif child_class == 'plex-select-wrapper':
                         child_element = UXPlexElement(input_wrapper.find_element(by, ".//select"), self)
-                        child_element.sync_type = 'picker'
                     elif 'ui-textarea-wrapper' in child_class:
                         child_element = UXPlexElement(input_wrapper.find_element(by, ".//textarea"), self)
-                        child_element.sync_type = 'text'
                 return child_element
         except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             if ignore_exception:
@@ -295,6 +293,34 @@ class UXDriver(PlexDriver):
 class UXPlexElement(PlexElement):
     def __init__(self, webelement, parent):
         super().__init__(webelement, parent)
+        self._type_detect()
+
+
+    def _type_detect(self, ignore_exception=False):
+        try:
+            wrapper_element = self.find_element(By.XPATH, "./ancestor::div[contains(@class,'plex-control-group')]//div[contains(@class,'plex-controls')]/*[1]")
+            wrapper_tag = wrapper_element.tag_name
+            wrapper_class = wrapper_element.get_attribute('class')
+            if wrapper_tag == 'input':
+                return self.get_attribute('type')
+            elif wrapper_tag == 'div':
+                if wrapper_class == 'plex-controls-element':
+                    wrapper_element = wrapper_element.find_element(By.XPATH, "./*[1]")
+                    wrapper_tag = wrapper_element.tag_name
+                    wrapper_class = wrapper_element.get_attribute('class')
+                if wrapper_tag == 'input':
+                    return self.get_attribute('type')
+                if wrapper_class == 'plex-picker-control':
+                    return 'picker'
+                elif wrapper_class == 'plex-select-wrapper':
+                    return 'picker'
+                elif 'ui-textarea-wrapper' in wrapper_class:
+                    return 'text'
+        except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
+            if ignore_exception:
+                return ''
+            raise
+
 
     def sync(self, value:Union[str, int, bool], **kwargs) -> None:
         clear = getattr(kwargs, 'clear', False)

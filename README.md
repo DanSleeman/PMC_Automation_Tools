@@ -25,6 +25,7 @@ This library serves two main functions.
   - [PlexDriver Functions](#plexdriver-functions)
     - [wait\_for\_element](#wait_for_element)
     - [wait\_for\_elements](#wait_for_elements)
+    - [find\_element\_by\_label](#find_element_by_label)
     - [wait\_for\_gears](#wait_for_gears)
     - [wait\_for\_banner](#wait_for_banner)
     - [login](#login)
@@ -35,6 +36,7 @@ This library serves two main functions.
   - [GenericDriver Functions](#genericdriver-functions)
     - [launch](#launch)
   - [PlexElement Functions](#plexelement-functions)
+    - [sync](#sync)
     - [sync\_picker](#sync_picker)
     - [sync\_textbox](#sync_textbox)
     - [sync\_checkbox](#sync_checkbox)
@@ -192,6 +194,33 @@ attribute_list = pa.wait_for_elements(By.NAME, 'PoLineAttributeValue')
 for el in attribute_list:
     el.sync_textbox('Text')
 ```
+### find_element_by_label
+
+Locates an input element using the element's text label.
+
+This is useful for updating or adding a record where the screen has many different types of inputs.
+
+E.X. Operations screen. This has textboxes, checkboxes, pickers, drop-down lists, and large text area elements.
+
+With this function, you can update all the elements using a dictionary of label:value pairs.
+
+This works well with a SQL report that pulls all the data required and the column names equal the field labels.  
+The function replaces underscores with spaces automatically.  
+Use this when you need to copy records from one PCN to another.
+
+```python
+import pmc_automation_tools as pa
+# Create a csv file from a SQL report
+input_file = 'Operations.csv'
+input_records = pa.read_updated(input_file)
+ux = pa.UXDriver('chrome')
+# ====Log in and navigate to the screen here====
+for row in input_records:
+    ux.click_action_bar_item('Add')
+    for k,v in row.items():
+        screen_elem = ux.find_element_by_label(k)
+        screen_elem.sync(v)
+```
 
 ### wait_for_gears
 
@@ -340,6 +369,14 @@ Parameters:
 Plex specific wrappers around Selenium `WebElement` objects.
 
 Standard Selenium functionality should be retained on these objects.
+
+### sync
+
+Generic function that will sync the element's value based on what type of input it is.
+
+Currently only works with elements returned via the `find_element_by_label()` function.
+
+- [ ] TODO: Add support for elements located with the input directly.
 
 ### sync_picker
 
