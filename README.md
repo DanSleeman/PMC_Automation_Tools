@@ -64,6 +64,7 @@ This library serves two main functions.
       - [Example 2](#example-2)
       - [Example 3](#example-3)
       - [Example 4](#example-4)
+      - [Example 5](#example-5)
 
 ## Requirements
 
@@ -818,4 +819,98 @@ for edi_id in edi_messages:
         out_file.write(edi_str)
 ```
 
+</details>
+
+#### Example 5
+
+Get one PCN's operation details from a SQL query and create the matching records in another PCN.  
+There is no data source or upload for these items.
+
+<details>
+<summary>
+Example 5
+</summary>
+
+Run this query in SQL Development Environment and save as a CSV file.
+
+```SQL
+SELECT
+
+ o.Operation_Code
+,o.Operation_Type
+,o.Inventory_Type
+,o.Defect_Log
+,o.Material
+,o.Rework
+,o.Ship 'Allow Ship'
+,o.Default_Operation 'Default'
+,o.Shipping_Operation
+,o.Uses_Tools
+,o.Variable_BOM_Qty 'Variable BOM'
+,o.Job_Quantity_Defective_Increase
+,o.Final_Operation
+,o.unit 'Inventory Unit'
+,o.Denominator_Unit
+,o.Fixed_Run_Time
+,o.Delay_Before
+,o.Delay_After
+,o.Note
+
+FROM part_v_operation o
+ORDER BY o.operation_code
+```
+
+Use the saved file as a source for this script.
+
+```python
+import pmc_automation_tools as pa
+import os
+from selenium.webdriver.common.by import By
+
+username = open(os.path.join('resources','username')).read()
+password = open(os.path.join('resources','password')).read()
+company_code = open(os.path.join('resources','company')).read()
+pcn = '123456'
+dest_pcn = '987654'
+test = True
+input_file = 'Operations.csv'
+input_records = pa.read_updated(input_file)
+
+batch_code_folder = pa.create_batch_folder(test=test)
+update_file = os.path.join(batch_code_folder, 'Updates.csv')
+error_file = os.path.join(batch_code_folder, 'Errors.csv')
+updated = pa.read_updated(update_file)
+
+ux = pa.UXDriver('chrome')
+logger = pa.setup_logger('Operations', root_dir=batch_code_folder)
+driver, url_comb, token = ux.login(username, password, company_code, pcn, test_db=test)
+token = ux.pcn_switch(dest_pcn)
+# Operations screen URL
+MAIN_URL = f'{url_comb}/VisionPlex/Screen?__actionKey=7148&{token}&__features=novirtual'
+driver.get(MAIN_URL)
+ux.wait_for_element(By.NAME, 'OperationCode')
+
+for row in input_records:
+    if row in updated:
+        continue
+    try:
+        ux.click_action_bar_item('Add')
+        ux.wait_for_gears()
+        # Each column name should match the screen element's label text.
+        # Underscores in the column name are replaced with spaces.
+        # Case sensitivity does not matter.
+        for k, v in row.items():
+            screen_elem = ux.find_element_by_label(k)
+            screen_elem.sync(v)
+        ux.click_button('Ok')
+        ux.wait_for_banner()
+        ux.wait_for_gears()
+        pa.save_updated(update_file, row)
+    except Exception as e:
+        logger.error(row)
+        logger.exception(e)
+        pa.save_updated(error_file, row)
+        driver.get(MAIN_URL)
+        ux.wait_for_element(By.NAME, 'OperationCode')
+```
 </details>

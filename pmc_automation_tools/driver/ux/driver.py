@@ -53,9 +53,12 @@ class UXDriver(PlexDriver):
 
     def find_element_by_label(self, label, driver=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
         try:
-            label = label.replace('_',' ')
+            label = label.replace('_',' ').lower()
             by = By.XPATH
-            value = f"//label[text()='{label}']/ancestor::div[contains(@class,'plex-control-group')]//div[contains(@class,'plex-controls')]"
+            _label = f"//label[normalize-space(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'))='{label}']"
+            _element_group = f"/ancestor::div[contains(@class,'plex-control-group')]"
+            _controls = f"//div[contains(@class,'plex-controls')]"
+            value = f"{_label}{_element_group}{_controls}"
             input_wrapper = self.wait_for_element(by, value, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception)
             if input_wrapper:
                 first_child = "./*[1]"
