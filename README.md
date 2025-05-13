@@ -374,9 +374,14 @@ Standard Selenium functionality should be retained on these objects.
 
 Generic function that will sync the element's value based on what type of input it is.
 
-Currently only works with elements returned via the `find_element_by_label()` function.
-
-- [ ] TODO: Add support for elements located with the input directly.
+EX:
+```python
+elem = ux.wait_for_element(By.NAME, 'OperationCode')
+elem.sync('Assembly')
+# Alternative:
+elem = ux.find_element_by_label('Operation Code')
+elem.sync('Assembly')
+```
 
 ### sync_picker
 
