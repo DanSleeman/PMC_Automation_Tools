@@ -383,13 +383,18 @@ class PlexElement(WebElement):
         super().screenshot(filename)
 
     
-    def sync_checkbox(self, bool_state:bool|int):
+    def sync_checkbox(self, bool_state:Union[bool,int,str]):
         """Sync a checkbox to the provided checked state
 
         Args:
-            bool_state (bool | int): Checkbox state to make the element.
+            bool_state (bool | int | str): Checkbox state to make the element. True, 1, "1", "True" should all evaluate to True
         """
-        if not type(bool_state) == bool:
+        if isinstance(bool_state, str):
+            if len(bool_state) > 1:
+                bool_state = bool_state.lower() == 'true'
+            else:
+                bool_state = bool(int(bool_state))
+        elif isinstance(bool_state, int):
             bool_state = bool(int(bool_state))
         check_state = self.get_property('checked')
         if not check_state == bool_state:

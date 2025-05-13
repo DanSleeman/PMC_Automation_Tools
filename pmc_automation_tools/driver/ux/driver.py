@@ -53,24 +53,27 @@ class UXDriver(PlexDriver):
 
     def find_element_by_label(self, label, driver=None, timeout=15, type=VISIBLE, ignore_exception=False) -> 'UXPlexElement':
         try:
+            label = label.replace('_',' ')
             by = By.XPATH
             value = f"//label[text()='{label}']/ancestor::div[contains(@class,'plex-control-group')]//div[contains(@class,'plex-controls')]"
             input_wrapper = self.wait_for_element(by, value, driver=driver, timeout=timeout, type=type, ignore_exception=ignore_exception)
             if input_wrapper:
-                value = "./*[1]"
-                child_element = UXPlexElement(input_wrapper.find_element(by, value), self)
+                first_child = "./*[1]"
+                child_element = UXPlexElement(input_wrapper.find_element(by, first_child), self)
                 child_tag = child_element.tag_name
                 child_class = child_element.get_attribute('class')
                 if child_tag == 'input':
                     child_element.sync_type = child_element.get_attribute('type')
-                elif child_tag == 'div' and child_class == 'plex-picker-control':
-                    value = f".//input"
-                    child_element = UXPlexElement(input_wrapper.find_element(by, value), self)
-                    child_element.sync_type = 'picker'
-                elif child_tag == 'div' and child_class == 'plex-select-wrapper':
-                    value = f".//select"
-                    child_element = UXPlexElement(input_wrapper.find_element(by, value), self)
-                    child_element.sync_type = 'picker'
+                elif child_tag == 'div':
+                    if child_class == 'plex-picker-control':
+                        child_element = UXPlexElement(input_wrapper.find_element(by, ".//input"), self)
+                        child_element.sync_type = 'picker'
+                    elif child_class == 'plex-select-wrapper':
+                        child_element = UXPlexElement(input_wrapper.find_element(by, ".//select"), self)
+                        child_element.sync_type = 'picker'
+                    elif 'ui-textarea-wrapper' in child_class:
+                        child_element = UXPlexElement(input_wrapper.find_element(by, ".//textarea"), self)
+                        child_element.sync_type = 'text'
                 return child_element
         except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             if ignore_exception:
@@ -109,7 +112,7 @@ class UXDriver(PlexDriver):
                 return None
             raise UpdateError('No banner detected.')
 
-
+    banner = wait_for_banner
     def _banner_handler(self, banner_type, banner):
         if banner_type == BANNER_SUCCESS:
             return 
@@ -126,7 +129,8 @@ class UXDriver(PlexDriver):
 
     def wait_for_gears(self, loading_timeout=10) -> None:
         super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
-
+    gears = wait_for_gears
+    
     def click_button(self, button_text:str, driver:Union['UXDriver','UXPlexElement']=None) -> None:
         """Clicks a standard button with matching text.
 
@@ -292,19 +296,22 @@ class UXPlexElement(PlexElement):
     def __init__(self, webelement, parent):
         super().__init__(webelement, parent)
 
-    def sync(self, value):
+    def sync(self, value:Union[str, int, bool], **kwargs) -> None:
+        clear = getattr(kwargs, 'clear', False)
+        date = getattr(kwargs, 'date', False)
+        column_delimiter = getattr(kwargs, 'column_delimiter', '\t')
         if hasattr(self, 'sync_type'):
             match self.sync_type:
                 case 'checkbox':
                     self.sync_checkbox(value)
                 case 'text':
-                    self.sync_textbox(value)
+                    self.sync_textbox(value, clear=clear)
                 case 'picker':
-                    self.sync_picker(value)
+                    self.sync_picker(value, clear=clear, date=date, column_delimiter=column_delimiter)
                 case _:
-                    raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, textbox, picker')
+                    raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, text, picker')
         else:
-            raise AttributeError(f'UXPlexElement object does not have a defined attribute type.')
+            raise AttributeError(f'UXPlexElement object does not have a defined sync type.')
 
     def sync_picker(self, text_content:str, clear:bool=False, date:bool=False, column_delimiter:str='\t') -> None:
         """Sync the picker element to the provided value.
