@@ -390,7 +390,6 @@ Updates the picker element's content to match the provided value. Does nothing i
 
 Works for the magnifying style pickers and Select style drop-down lists.
 
-- [ ] TODO: Add support for multi-picker value selection
 - [ ] TODO: Add support for `ClassicDriver` object
 
 ### sync_textbox

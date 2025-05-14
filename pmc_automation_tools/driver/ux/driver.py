@@ -24,6 +24,7 @@ from pmc_automation_tools.common.exceptions import (
     GridRowError
     )
 import time
+import re
 BANNER_SUCCESS = 1
 BANNER_WARNING = 2
 BANNER_ERROR = 3
@@ -296,7 +297,6 @@ class UXDriver(PlexDriver):
 class UXPlexElement(PlexElement):
     def __init__(self, webelement, parent):
         super().__init__(webelement, parent)
-        self._type_detect()
 
 
     def _type_detect(self, ignore_exception=False):
@@ -329,24 +329,25 @@ class UXPlexElement(PlexElement):
         clear = getattr(kwargs, 'clear', False)
         date = getattr(kwargs, 'date', False)
         column_delimiter = getattr(kwargs, 'column_delimiter', '\t')
+        if not hasattr(self, 'sync_type'):
+            self.sync_type = self._type_detect(ignore_exception=True)
         if hasattr(self, 'sync_type'):
-            match self.sync_type:
-                case 'checkbox':
-                    self.sync_checkbox(value)
-                case 'text':
-                    self.sync_textbox(value, clear=clear)
-                case 'picker':
-                    self.sync_picker(value, clear=clear, date=date, column_delimiter=column_delimiter)
-                case _:
-                    raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, text, picker')
+            if self.sync_type == 'checkbox':
+                self.sync_checkbox(value)
+            elif self.sync_type ==  'text':
+                self.sync_textbox(value, clear=clear)
+            elif self.sync_type ==  'picker':
+                self.sync_picker(value, clear=clear, date=date, column_delimiter=column_delimiter)
+            else:
+                raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, text, picker')
         else:
             raise AttributeError(f'UXPlexElement object does not have a defined sync type.')
 
-    def sync_picker(self, text_content:str, clear:bool=False, date:bool=False, column_delimiter:str='\t') -> None:
+    def sync_picker(self, text_content:Union[str, list], clear:bool=False, date:bool=False, column_delimiter:str='\t') -> None:
         """Sync the picker element to the provided value.
 
         Args:
-            text_content (str): Desired value for the picker
+            text_content (str|list): Desired value(s) for the picker
             clear (bool, optional): Clear the picker if providing a blank text_content. Defaults to False.
             date (bool, optional): If the picker is a date picker. This should be detected automatically, but can be forced if behavior is unexpected.. Defaults to False.
             column_delimiter (str, optional): Delimiter for splitting the popup row's text for searching exact matches. Defaults to '\t'. 
@@ -365,15 +366,31 @@ class UXPlexElement(PlexElement):
             self.debug_logger.debug('Picker type is selection list.')
             self._handle_select_picker(text_content)
             return
-        self.debug_logger.debug('Handling non-select picker.')
         # Check for existing selected item
-        matching = self._check_existing_selection(text_content)
-
-        # If there's no existing matching item, send the new text and process the picker
+        if isinstance(text_content, list):
+            self.debug_logger.debug('Handling non-select multi picker.')
+            matching = self._check_existing_multiple(text_content)
+        else:
+            self.debug_logger.debug('Handling non-select picker.')
+            matching = self._check_existing_selection(text_content)
+        self.debug_logger.debug(f'Matching value: {matching}')
+        if not isinstance(matching, bool):
+            # The response could return an integer value for the number of existing values if there is a difference.
+            # Must check for boolean instance rather than integer since bool is a subclass of int.
+            self.debug_logger.debug(f'Detected difference between current and provided values. Sending backspace {matching} times.')
+            self.send_keys(Keys.BACK_SPACE * matching)
+            matching = False
         if not matching and not clear:
-            self.send_keys(text_content)
-            self.send_keys(Keys.TAB)
-            self._handle_popup_or_picker(text_content, date, column_delimiter)
+            if isinstance(text_content, list):
+                for t in text_content:
+                    self.debug_logger.debug(f'Entering value {t} into multi-select picker.')
+                    self.send_keys(t)
+                    self.send_keys(Keys.TAB)
+                    self._handle_popup_window(t, column_delimiter)
+            else:
+                self.send_keys(text_content)
+                self.send_keys(Keys.TAB)
+                self._handle_popup_or_picker(text_content, date, column_delimiter)
     
     
     def _handle_select_picker(self, text_content):
@@ -395,22 +412,37 @@ class UXPlexElement(PlexElement):
             self.debug_logger.info(f'No matching selection available for {text_content}')
             raise NoRecordError(f'No matching selection available for {text_content}')
         
-    def _check_existing_multiple(self, text_content):
-        # TODO 12/13/2024 Work on developing this.
-        # Needs to check for the text values of each element in the picker and compare it against the provided list of values.
-        # Lists should be able to be in any order for comparison
+    def _check_existing_multiple(self, text_content:list):
         try:
-            self.debug_logger.debug('Trying to locate an existing selected items.')
-            selected_elements = self.driver.find_elements(By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']")
+            self.debug_logger.debug('Trying to locate existing selected items.')
+            text_content.sort()
+            selected_elements = self.find_elements(By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']")
             if len(selected_elements) > 0: # Should always only be 1 element
+                self.debug_logger.debug('Found selected item wrapper element.')
                 current_text = selected_elements[0].find_elements(By.CLASS_NAME, 'plex-picker-item-text')
                 if len(current_text) > 0:
+                    self.debug_logger.debug('Multiple selected items detected.')
+                    last_element = current_text[-1]
+                    last_text = last_element.get_property('textContent')
+                    self.debug_logger.debug(f'{len(current_text)} elements found. Last element text: {last_text}')
+                    match = re.fullmatch(r'([0-9,]+) more', last_text)
+                    if match:
+                        self.debug_logger.debug('Too many elements selected. Expanding selection to check whole list.')
+                        last_element.click()
+                        current_text = selected_elements[0].find_elements(By.CLASS_NAME, 'plex-picker-item-text')
                     compare_value = [c.get_property('textContent') for c in current_text]
+                    compare_value.sort()
+                    self.debug_logger.debug(f'Current value: {compare_value}\nInput value: {text_content}')
                     if text_content == compare_value:
+                        self.debug_logger.debug('Two lists match, not making any updates.')
                         return True
+                    else:
+                        self.debug_logger.debug('Lists do not match.')
+                        return len(compare_value)
         except (NoSuchElementException, TimeoutException):
             self.debug_logger.debug('No initial selected item detected.')
         return False
+    
     def _check_existing_selection(self, text_content):
         try:
             self.debug_logger.debug('Trying to locate an existing selected item.')
@@ -464,6 +496,7 @@ class UXPlexElement(PlexElement):
             if multi:
                 self.debug_logger.info('Multi-picker, clicking ok on the popup window.')
                 self.click_button('Ok', driver=popup)
+            self.wait_for_element((By.CLASS_NAME, 'modal-dialog.plex-picker'), timeout=3, type=INVISIBLE, ignore_exception=True)
 
         except (TimeoutException, NoSuchElementException):
             self.debug_logger.info(f'No matching elements found for {text_content}')

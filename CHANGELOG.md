@@ -28,6 +28,8 @@ Added support to `UXPlexElement` for universal `sync()` method when using above 
 
 Added function aliases for `wait_for_gears()` and `wait_for_banner()` to UXDriver class.
 
+Added support for multi-picker elements with `sync()` and `sync_picker()` methods.
+
 ## Changed
 
 Added support for `sync_checkbox()` input to accept multiple options for truthiness. True, 1, "1", "True", "TRUE" should all evaluate to True.
