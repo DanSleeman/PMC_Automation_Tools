@@ -2,14 +2,8 @@
 
 [ ] - `driver.common.wait_for_elements()` - Add support for different expected conditions such as clickable and invisible.
 
-[ ] - `driver.ux.driver.sync_picker()` - Add support for multi-picker value selection
-
 [ ] - `driver.classic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
-[x] - `api.ux.datasource._xdate()` - Add support for other datetime formats that commonly come from the SQL environment. The current format should match the datetime SQL object. If converted to a varchar, then it will change and not work.
-
-[x] - `driver.ux.driver` - Create a method for locating and selecting a row in a grid based on a certain column's cell value.  
-                            XPATH Example: "//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index=0][text()='CNC053']"
 # 0.6.4 [2025-5-5]
 
 ## Fixed
