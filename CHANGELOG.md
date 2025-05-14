@@ -32,6 +32,8 @@ Changed `setup_logger()` function to always add a handler regardless of any pare
 
 Added error safe handling for threaded datasource calls
 
+Improved performance on `highlight_row()` function when there are many rows.
+
 # 0.6.3 [2025-1-28]
 
 ## Fixed
