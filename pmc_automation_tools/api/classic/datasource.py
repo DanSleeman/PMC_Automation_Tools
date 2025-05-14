@@ -78,12 +78,15 @@ class ClassicDataSource(DataSource):
         _response = serialize_object(response, dict)
         return ClassicDataSourceResponse(query.__api_id__, **_response)
 
-
     def call_data_source_threaded(self, query_list:List['ClassicDataSourceInput']) -> List['ClassicDataSourceResponse']:
+        def error_safe_call(query):
+            try:
+                return self.call_data_source(query)
+            except ClassicConnectionError as e:
+                return e
         with ThreadPoolExecutor(max_workers=8) as pool:
-            response_list = list(pool.map(self.call_data_source, query_list))
-        return response_list
-    
+            response_list = list(pool.map(error_safe_call, query_list))
+        return response_list    
 
 class ClassicDataSourceResponse(DataSourceResponse):
     def __init__(self, data_source_key, **kwargs):

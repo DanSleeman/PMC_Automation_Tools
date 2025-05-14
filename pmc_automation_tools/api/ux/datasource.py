@@ -255,8 +255,13 @@ class UXDataSource(DataSource):
     
 
     def call_data_source_threaded(self, query_list:List['UXDataSourceInput']) -> List['UXDataSourceResponse']:
+        def error_safe_call(query):
+            try:
+                return self.call_data_source(query)
+            except UXResponseErrorLog as e:
+                return e
         with ThreadPoolExecutor(max_workers=8) as pool:
-            response_list = list(pool.map(self.call_data_source, query_list))
+            response_list = list(pool.map(error_safe_call, query_list))
         return response_list
     
 

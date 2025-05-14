@@ -103,10 +103,14 @@ class ApiDataSource(DataSource):
 
 
     def call_data_source_threaded(self, query_list:List['ApiDataSourceInput']) -> List['ApiDataSourceResponse']:
+        def error_safe_call(query):
+            try:
+                return self.call_data_source(query)
+            except ApiError as e:
+                return e
         with ThreadPoolExecutor(max_workers=8) as pool:
-            response_list = list(pool.map(self.call_data_source, query_list))
-        return response_list
-
+            response_list = list(pool.map(error_safe_call, query_list))
+        return response_list  
 
 class ApiDataSourceResponse(DataSourceResponse):
     def __init__(self, url, **kwargs):

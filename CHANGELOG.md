@@ -30,6 +30,8 @@ Added support for `sync_checkbox()` input to accept multiple options for truthin
 
 Changed `setup_logger()` function to always add a handler regardless of any parent handlers. Can be overwritten by passing propagate=True.
 
+Added error safe handling for threaded datasource calls
+
 # 0.6.3 [2025-1-28]
 
 ## Fixed
