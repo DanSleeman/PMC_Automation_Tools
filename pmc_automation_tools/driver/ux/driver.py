@@ -382,7 +382,7 @@ class UXPlexElement(PlexElement):
                     self.debug_logger.debug(f'Entering value {t} into multi-select picker.')
                     self.send_keys(t)
                     self.send_keys(Keys.TAB)
-                    self._handle_popup_window(t, column_delimiter)
+                    self._handle_popup_or_picker(t, date, column_delimiter)
             else:
                 self.send_keys(text_content)
                 self.send_keys(Keys.TAB)

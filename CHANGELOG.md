@@ -4,6 +4,12 @@
 
 [ ] - `driver.classic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
+# 0.6.5 [2025-6-4]
+
+## Fixed
+
+Fixed issue with `sync_picker()` function when using multiple values that were exact matches.
+
 # 0.6.4 [2025-5-5]
 
 ## Fixed
