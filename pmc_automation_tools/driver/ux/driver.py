@@ -365,10 +365,10 @@ class UXPlexElement(PlexElement):
         # Check for existing selected item
         if isinstance(text_content, list):
             self.debug_logger.debug('Handling non-select multi picker.')
-            matching = self._check_existing_multiple(text_content)
         else:
+            text_content = [text_content]
             self.debug_logger.debug('Handling non-select picker.')
-            matching = self._check_existing_selection(text_content)
+        matching = self._check_existing_multiple(text_content)
         self.debug_logger.debug(f'Matching value: {matching}')
         if not isinstance(matching, bool):
             # The response could return an integer value for the number of existing values if there is a difference.

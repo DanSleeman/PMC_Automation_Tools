@@ -10,6 +10,8 @@
 
 Fixed issue with `sync_picker()` function when using multiple values that were exact matches.
 
+Fixed issue with `sync_picker()` function that wouldn't clear out multi-pickers when providing new single value.
+
 # 0.6.4 [2025-5-5]
 
 ## Fixed
