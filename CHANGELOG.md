@@ -12,6 +12,8 @@ Fixed issue with `sync_picker()` function when using multiple values that were e
 
 Fixed issue with `sync_picker()` function that wouldn't clear out multi-pickers when providing new single value.
 
+Fixed issue with `highlight_row()` function when the column referenced contained a link element.
+
 # 0.6.4 [2025-5-5]
 
 ## Fixed

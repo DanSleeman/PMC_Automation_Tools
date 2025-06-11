@@ -281,7 +281,11 @@ class UXDriver(PlexDriver):
             if column_match is None:
                 raise GridColumnError(f'No column detected in the table matching provided value: {column}.')
             column = column_match
-        matching_rows = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column} and text()='{value}']")
+        link_check = self.driver.find_element(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a")
+        if link_check:
+            matching_rows = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a[text()='{value}']")
+        else:
+            matching_rows = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column} and text()='{value}']")
         if len(matching_rows) == 0:
             raise GridRowError(f"Plex grid row not found for column index {column} containing value: {value}.")
         if len(matching_rows) > 1:
