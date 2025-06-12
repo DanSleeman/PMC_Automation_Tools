@@ -4,7 +4,7 @@
 
 [ ] - `driver.classic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
-# 0.6.5 [2025-6-4]
+# 0.6.5 [2025-6-12]
 
 ## Fixed
 
@@ -13,6 +13,18 @@ Fixed issue with `sync_picker()` function when using multiple values that were e
 Fixed issue with `sync_picker()` function that wouldn't clear out multi-pickers when providing new single value.
 
 Fixed issue with `highlight_row()` function when the column referenced contained a link element.
+
+## Added
+
+Added ability to define `resource_path` for PlexDriver objects. Falls back to CWD\resources. Acceptable kwargs are `resource_path` and `resource_dir`.
+
+Added ability to define `download_dir` for PlexDriver objects. Falls back to CWD\downloads. Acceptable kwargs are `download_path` and `download_dir`.
+
+Added `batch_root` param to `login` function to define the root used when creating batch code directory. Defaults to CWD.
+
+## Changed
+
+Modified PlexDriver `__init__` to set these variables for `_path_init` to reference
 
 # 0.6.4 [2025-5-5]
 

@@ -70,6 +70,8 @@ class PlexDriver(ABC):
         self.pcn_file_path = kwargs.get('pcn_file_path', Path('resources/pcn.json'))
         self.debug = kwargs.get('debug', False)
         self.debug_level = kwargs.get('debug_level', 0)
+        self.resource_path = kwargs.get('resource_dir') or kwargs.get('resource_path') or 'resources'
+        self.download_dir = kwargs.get('download_dir') or kwargs.get('download_path') or 'downloads'
         self.debug_logger = debug_logger(self.debug_level)
         self.environment = environment.lower()
         self.single_pcn = False
@@ -86,10 +88,8 @@ class PlexDriver(ABC):
 
 
     def _path_init(self):
-        self.resource_path = 'resources'
         if not os.path.exists(self.resource_path):
             os.mkdir(self.resource_path)
-        self.download_dir = 'downloads'
         if not os.path.exists(self.download_dir):
             os.mkdir(self.download_dir)
 
@@ -237,7 +237,7 @@ class PlexDriver(ABC):
         self.debug_logger.debug(f'Timeout for invisible is {timeout}.')
         self.wait_for_element(selector, type=INVISIBLE, timeout=timeout, ignore_exception=True)
 
-    def login(self, username, password, company_code, pcn, test_db=True, headless=False):
+    def login(self, username, password, company_code, pcn, test_db=True, headless=False, batch_root=''):
         """Log in to Plex
 
         Args:
@@ -247,9 +247,10 @@ class PlexDriver(ABC):
             pcn (str): PCN number
             test_db (bool, optional): Log in to the test database. Defaults to True.
             headless (bool, optional): Run in headless mode. Defaults to False.
+            batch_root (str, optional): the root folder to use for the batch folders. Defaults to CWD.
         """
         self.test_db = test_db
-        self.batch_folder = create_batch_folder(test=self.test_db)
+        self.batch_folder = create_batch_folder(root=batch_root ,test=self.test_db)
         self.pcn = pcn
         self.headless = headless
         if hasattr(self, 'pcn_dict'):
