@@ -329,6 +329,7 @@ class UXPlexElement(PlexElement):
         clear = getattr(kwargs, 'clear', False)
         date = getattr(kwargs, 'date', False)
         column_delimiter = getattr(kwargs, 'column_delimiter', '\t')
+        multi = getattr(kwargs, 'multi', False)
         if not hasattr(self, 'sync_type'):
             self.sync_type = self._type_detect(ignore_exception=True)
         if hasattr(self, 'sync_type'):
@@ -337,13 +338,13 @@ class UXPlexElement(PlexElement):
             elif self.sync_type ==  'text':
                 self.sync_textbox(value, clear=clear)
             elif self.sync_type ==  'picker':
-                self.sync_picker(value, clear=clear, date=date, column_delimiter=column_delimiter)
+                self.sync_picker(value, clear=clear, date=date, column_delimiter=column_delimiter, multi=multi)
             else:
                 raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, text, picker')
         else:
             raise AttributeError(f'UXPlexElement object does not have a defined sync type.')
 
-    def sync_picker(self, text_content:Union[str, list], clear:bool=False, date:bool=False, column_delimiter:str='\t') -> None:
+    def sync_picker(self, text_content:Union[str, list], clear:bool=False, date:bool=False, column_delimiter:str='\t', multi:bool=False) -> None:
         """Sync the picker element to the provided value.
 
         Args:
@@ -351,7 +352,7 @@ class UXPlexElement(PlexElement):
             clear (bool, optional): Clear the picker if providing a blank text_content. Defaults to False.
             date (bool, optional): If the picker is a date picker. This should be detected automatically, but can be forced if behavior is unexpected.. Defaults to False.
             column_delimiter (str, optional): Delimiter for splitting the popup row's text for searching exact matches. Defaults to '\t'. 
-
+            multi (bool, optional): If true, will treat the picker as a multi-picker regardless of if the text content is a list or string. Gets set to True if text_content is a list.
         Raises:
             NoRecordError: If the drop-down picker does not have a matching option with the provided text content.
             NoRecordError: If the popup window does not return any results with the provided text content.
@@ -368,11 +369,15 @@ class UXPlexElement(PlexElement):
             return
         # Check for existing selected item
         if isinstance(text_content, list):
+            multi = True
+        if multi:
+            if not isinstance(text_content, list):
+                text_content = [text_content]
             self.debug_logger.debug('Handling non-select multi picker.')
+            matching = self._check_existing_multiple(text_content)
         else:
-            text_content = [text_content]
             self.debug_logger.debug('Handling non-select picker.')
-        matching = self._check_existing_multiple(text_content)
+            matching = self._check_existing_selection(text_content)
         self.debug_logger.debug(f'Matching value: {matching}')
         if not isinstance(matching, bool):
             # The response could return an integer value for the number of existing values if there is a difference.

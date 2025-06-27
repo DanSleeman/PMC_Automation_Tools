@@ -4,6 +4,15 @@
 
 [ ] - `driver.classic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
+# 0.6.6 [2025-6-27]
+
+## Changed
+
+Changed how `sync_picker()` handled multi-picker elements.  
+Single only pickers do not clear the contents when sending backspace.  
+There is now a specific `multi` argument for this function.  
+The default behavior will still treat the picker as a multi-select when the `text_content` argument is a list/tuple.
+
 # 0.6.5 [2025-6-12]
 
 ## Fixed
