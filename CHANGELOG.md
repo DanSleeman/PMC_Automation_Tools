@@ -4,6 +4,14 @@
 
 [ ] - `driver.classic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
+# 0.6.7 [2025-7-30]
+
+## Fixed
+
+Fixed LoginError exception calls that were not passing all the expected kwargs.
+
+Fixed typo in LoginError attribute. environtment > environment
+
 # 0.6.6 [2025-6-27]
 
 ## Changed

@@ -167,6 +167,7 @@ class ClassicDriver(PlexDriver):
         Raises:
             LoginError: If there is any credential issues, the window will not appear.
         """
+        _pcn_name = self.pcn_dict.get(self.pcn, None)
         main_window_handle = self.driver.current_window_handle
         signin_window_handle = None
         timeout_signin = 30
@@ -184,20 +185,21 @@ class ClassicDriver(PlexDriver):
                     break
                 time.sleep(1)
         if not signin_window_handle:
-            raise LoginError('Failed to find Plex signon window. Please validate login credentials and try again.')
+            raise LoginError(environment=self.environment, db=self.test_db, pcn=_pcn_name, message=f'Failed to find Plex signon window. Please validate login credentials and try again.')
         self.driver.switch_to.window(signin_window_handle)
 
 
     def _login_validate(self):
+        _pcn_name = self.pcn_dict.get(self.pcn, None)
         url = self.driver.current_url
         if not any(url_part in url.upper() for url_part in SIGNON_URL_PARTS):
-            raise LoginError('Login page not detected. Please validate login credentials and try again.')
+            raise LoginError(environment=self.environment, db=self.test_db, pcn=_pcn_name, message=f'Login page not detected. Please validate login credentials and try again.')
 
 
     def _pcn_switch(self, pcn):
         _pcn_name = self.pcn_dict.get(pcn, None)
         if not _pcn_name:
-            raise LoginError(f'PCN: {pcn} is not present in reference file. Verify pcn.json data.')
+            raise LoginError(environment=self.environment, db=self.test_db, pcn=_pcn_name, message=f'PCN: {pcn} is not present in reference file. Verify pcn.json data.')
         _url = self.driver.current_url
         if self.single_pcn:
             warn(f'This account only has access to one PCN.', loglevel=2)
@@ -212,7 +214,7 @@ class ClassicDriver(PlexDriver):
             return
         if self._pcn_link_locate(f'//*[contains(text(), "{_pcn_name}")]'):
             return
-        raise LoginError(self.environment, self.db, _pcn_name, f'Unable to locate PCN. Verify you have access.')
+        raise LoginError(environment=self.environment, db=self.test_db, pcn=_pcn_name, message=f'Unable to locate PCN. Verify you have access.')
 
 
     def _pcn_link_locate(self, xpath):

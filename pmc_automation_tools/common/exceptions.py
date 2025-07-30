@@ -29,7 +29,7 @@ class LoginError(PlexAutomateError):
     """Thrown if the expected login screens are not found."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
-        self.environtment = kwargs.get('environment')
+        self.environment = kwargs.get('environment')
         self.db = kwargs.get('db')
         self.pcn = kwargs.get('pcn')
         self.message = kwargs.get('message')

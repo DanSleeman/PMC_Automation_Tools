@@ -249,13 +249,13 @@ class UXDriver(PlexDriver):
         self.url_token = self.token_get()
         self.driver.get(f'{self.url_comb}/SignOn/Customer/{pcn}?{self.url_token}')
         if UX_INVALID_PCN_MESSAGE in self.driver.current_url.upper():
-            raise LoginError(self.environment, self.db, pcn, f'Unable to login to PCN. Verify you have access.')
+            raise LoginError(environment=self.environment, db=self.test_db, pcn=pcn, message=f'Unable to login to PCN. Verify you have access.')
     
     
     def _login_validate(self):
         url = self.driver.current_url
         if not any(url_part in url.upper() for url_part in SIGNON_URL_PARTS):
-            raise LoginError(self.environment, self.db, self.pcn_name, 'Login page not detected. Please validate login credentials and try again.')
+            raise LoginError(environment=self.environment, db=self.test_db, pcn=self.pcn_name, message='Login page not detected. Please validate login credentials and try again.')
         
     
     def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0):
