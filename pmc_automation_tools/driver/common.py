@@ -366,6 +366,7 @@ class PlexElement(WebElement):
         self.click_button = parent.click_button
         self.wait_for_gears = parent.wait_for_gears
         self.search_for_element = parent.search_for_element
+        self.highlight_row = parent.highlight_row
 
 
     def screenshot(self):

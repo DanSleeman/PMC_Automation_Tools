@@ -165,6 +165,8 @@ class UXDriver(PlexDriver):
                 break
             
     def click_action_bar_item(self, item:str, sub_item:str=None) -> None:
+        # 1/23/2026 - TODO - Rework this so it isn't always clicking the "more" button.
+        # Should ideally check if the specified item is clickable first. If not, then try from within the more submenu.
         """Clicks on an action bar item.
 
         Args:
@@ -258,7 +260,7 @@ class UXDriver(PlexDriver):
             raise LoginError(environment=self.environment, db=self.test_db, pcn=self.pcn_name, message='Login page not detected. Please validate login credentials and try again.')
         
     
-    def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0):
+    def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0, driver:Union['UXDriver','UXPlexElement']=None):
         """
         Clicks a row in a grid with a matching value in the column provided.
 
@@ -267,6 +269,7 @@ class UXDriver(PlexDriver):
             column (str|int): the column name or index of the column that should be used for matching
             row_offset(int): if there are multiple matching rows, the offset can be used to indicate which of them should be highlighted.
         """
+        driver = driver or self.driver
         column_match = None
         if isinstance(column, str):
             # There are usually two thead elements for any given grid. However, they should both work for finding the proper column index for a given column title.
@@ -281,11 +284,14 @@ class UXDriver(PlexDriver):
             if column_match is None:
                 raise GridColumnError(f'No column detected in the table matching provided value: {column}.')
             column = column_match
-        link_check = self.driver.find_element(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a")
+        try:
+            link_check = driver.find_element(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a")
+        except:
+            link_check = False
         if link_check:
-            matching_rows = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a[text()='{value}']")
+            matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a[text()='{value}']")
         else:
-            matching_rows = self.driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column} and text()='{value}']")
+            matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column} and text()='{value}']")
         if len(matching_rows) == 0:
             raise GridRowError(f"Plex grid row not found for column index {column} containing value: {value}.")
         if len(matching_rows) > 1:
@@ -386,6 +392,7 @@ class UXPlexElement(PlexElement):
             self.send_keys(Keys.BACK_SPACE * matching)
             matching = False
         if not matching and not clear:
+            # Interesting behavior with multi-picker lists. If you send an exact match value twice, all the multiple selected items will be overwritten to only the duplicate value.
             if isinstance(text_content, list):
                 for t in text_content:
                     self.debug_logger.debug(f'Entering value {t} into multi-select picker.')
