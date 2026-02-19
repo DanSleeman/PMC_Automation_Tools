@@ -8,6 +8,7 @@ from pmc_automation_tools.driver.common import (
     EXISTS,
     SIGNON_URL_PARTS,
     )
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import (
     TimeoutException,
     StaleElementReferenceException,
@@ -133,6 +134,21 @@ class UXDriver(PlexDriver):
         super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
     gears = wait_for_gears
     
+
+    def _find_buttons(self, driver:Union['UXDriver','UXPlexElement']) -> list[WebElement]:
+        """Handles both types of 'buttons' that UX uses.
+        
+        Normal buttons like Search, Ok, Apply which use the 'button' HTML tag.
+
+        Popup dialog buttons which are stylized hyperlinks using the 'a' HTML tag.
+
+        """
+        real_buttons = driver.find_elements(By.TAG_NAME, 'button')
+        link_buttons = driver.find_elements(By.TAG_NAME, 'a')
+
+        link_buttons = [link for link in link_buttons if 'btn' in link.get_attribute('class')]
+        return real_buttons + link_buttons
+
     def click_button(self, button_text:str, driver:Union['UXDriver','UXPlexElement']=None) -> None:
         """Clicks a standard button with matching text.
 
@@ -157,7 +173,7 @@ class UXDriver(PlexDriver):
                 
         """
         driver = driver or self.driver
-        buttons = driver.find_elements(By.TAG_NAME, 'button')
+        buttons = self._find_buttons(driver)
         for b in buttons:
             if b.get_property('textContent') == button_text:
                 self.debug_logger.debug(f'Button found with matching text: {button_text}')
