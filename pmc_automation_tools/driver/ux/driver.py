@@ -8,6 +8,8 @@ from pmc_automation_tools.driver.common import (
     EXISTS,
     SIGNON_URL_PARTS,
     )
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import (
     TimeoutException,
@@ -149,7 +151,7 @@ class UXDriver(PlexDriver):
         link_buttons = [link for link in link_buttons if 'btn' in link.get_attribute('class')]
         return real_buttons + link_buttons
 
-    def click_button(self, button_text:str, driver:Union['UXDriver','UXPlexElement']=None) -> None:
+    def click_button(self, button_text:str, driver:Union['UXDriver','UXPlexElement']=None, timeout:int=15) -> None:
         """Clicks a standard button with matching text.
 
         Args:
@@ -177,6 +179,7 @@ class UXDriver(PlexDriver):
         for b in buttons:
             if b.get_property('textContent') == button_text:
                 self.debug_logger.debug(f'Button found with matching text: {button_text}')
+                WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(b))
                 b.click()
                 break
             
