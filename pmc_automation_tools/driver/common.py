@@ -163,6 +163,7 @@ class PlexDriver(ABC):
             raise TypeError('selector argument not instance of tuple or did not receive 2 positional arguments for "by" and "value".')
         # Fix for locating link text when the source value contains repeated whitespace or non-printing whitespace characters (tab, newline).
         if by == 'link text':
+            self.debug_logger.debug(f'Selector is link text. Normalizing value input to strip repeated whitespace.')
             value = ' '.join(value.split())
         try:
             driver = driver or self.driver
@@ -212,9 +213,11 @@ class PlexDriver(ABC):
 
     def _banner_handler(self, banner_type, banner):
         if banner_type == BANNER_SUCCESS:
+            self.debug_logger.debug(f'Success banner detected.')
             return
         else:
             banner_text = banner.get_property('textContent')
+            self.debug_logger.debug(f'Banner type {banner_type} detected. Banner text: {banner_text}')
             raise UpdateError(banner_text)
 
     def wait_for_gears(self, selector, loading_timeout=10):
