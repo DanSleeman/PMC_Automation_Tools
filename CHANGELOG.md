@@ -4,6 +4,14 @@
 
 [ ] - `driver.classic.driver.sync_picker()` - Add support for `ClassicDriver` object
 
+# 0.6.8 [2/20/2026]
+
+## Changed
+
+Added support for `highlight_row()` to work within a popup element.
+
+Added support for `click_button()` to work with hyperlink type "buttons" used in popups.
+
 # 0.6.7 [2025-7-30]
 
 ## Fixed
