@@ -212,10 +212,10 @@ class UXDriver(PlexDriver):
 
         # Handle sub_item or main item click
         if sub_item:
-            self.debug_logger.debug("Clicking sub-item.")
+            self.debug_logger.debug(f"Clicking sub-item: {sub_item}.")
             self._click_sub_item(action_bar, item, sub_item)
         else:
-            self.debug_logger.debug("Clicking main item.")
+            self.debug_logger.debug(f"Clicking main item: {item}.")
             action_item = self.wait_for_element((By.LINK_TEXT, item), type=CLICKABLE)
             action_item.click()
 
@@ -292,7 +292,7 @@ class UXDriver(PlexDriver):
         column_match = None
         if isinstance(column, str):
             # There are usually two thead elements for any given grid. However, they should both work for finding the proper column index for a given column title.
-            _plex_grid_header = self.driver.find_element(By.TAG_NAME, 'thead')
+            _plex_grid_header = driver.find_element(By.TAG_NAME, 'thead')
             _header_cells = _plex_grid_header.find_elements(By.CLASS_NAME, 'plex-grid-header-cell')
             for i, h in enumerate(_header_cells):
                 abbr = h.find_elements(By.TAG_NAME, 'abbr')
@@ -301,20 +301,25 @@ class UXDriver(PlexDriver):
                         column_match = i
                         break
             if column_match is None:
+                self.debug_logger.debug(f'No column detected in the table matching provided value: {column}.')
                 raise GridColumnError(f'No column detected in the table matching provided value: {column}.')
             column = column_match
         try:
+            self.debug_logger.debug('Checking if the cell index contains a hyperlink.')
             link_check = driver.find_element(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a")
         except:
             link_check = False
         if link_check:
+            self.debug_logger.debug('Cell index is a hyperlink.')
             matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a[text()='{value}']")
         else:
+            self.debug_logger.debug('Cell index is not a hyperlink.')
             matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column} and text()='{value}']")
         if len(matching_rows) == 0:
+            self.debug_logger.debug(f"Plex grid row not found for column index {column} containing value: {value}.")
             raise GridRowError(f"Plex grid row not found for column index {column} containing value: {value}.")
         if len(matching_rows) > 1:
-            print(f"Multiple rows match the provided text content. Selecting row number {row_offset} from these results.")
+            self.debugg_logger.debug(f"Multiple rows match the provided text content. Selecting row number {row_offset} from these results.")
         matching_rows[row_offset].find_element(By.XPATH, '..').click() # Click the TR element to avoid clicking a hyperlink in the TD
         return None
 
