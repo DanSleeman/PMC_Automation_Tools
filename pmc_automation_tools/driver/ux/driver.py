@@ -354,6 +354,38 @@ class UXPlexElement(PlexElement):
                 return ''
             raise
 
+    def get_value(self) -> str:
+        if not hasattr(self, 'sync_type'):
+            self.sync_type = self._type_detect(ignore_exception=True)
+        if hasattr(self, 'sync_type'):
+            if self.sync_type == 'checkbox':
+                return self.get_property('checked')
+            elif self.sync_type ==  'text':
+                return self.get_property('value')
+            elif self.sync_type ==  'picker':
+                if self.tag_name == 'select':
+                    _select = Select(self)
+                    return _select.first_selected_option.text
+                selected_element = self.wait_for_element(
+                    (By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']"),
+                    driver=self,
+                    timeout=1,
+                    ignore_exception=True
+                )
+                if selected_element:
+                    current_text = self.wait_for_element(
+                        (By.CLASS_NAME, "plex-picker-item-text"),
+                        driver=selected_element,
+                        timeout=1,
+                        ignore_exception=True
+                    )
+                    if current_text:
+                        return current_text.get_property('textContent')
+                return ''
+            else:
+                raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, text, picker')
+        else:
+            raise AttributeError(f'UXPlexElement object does not have a defined sync type.')
 
     def sync(self, value:Union[str, int, bool], **kwargs) -> None:
         clear = getattr(kwargs, 'clear', False)
