@@ -12,6 +12,10 @@ Added support for `highlight_row()` to work within a popup element.
 
 Added support for `click_button()` to work with hyperlink type "buttons" used in popups.
 
+## Added
+
+Added function `get_value()` for `UXPlexElement` objects.
+
 # 0.6.7 [2025-7-30]
 
 ## Fixed

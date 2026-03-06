@@ -12,7 +12,7 @@ from pmc_automation_tools.driver.common import (
     EXISTS
 )
 
-__version__ = "0.6.7"
+__version__ = "0.6.8"
 __all__ = [
     "UXDataSource",
     "UXDataSourceInput",
