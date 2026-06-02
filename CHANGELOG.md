@@ -12,9 +12,20 @@ Added support for `highlight_row()` to work within a popup element.
 
 Added support for `click_button()` to work with hyperlink type "buttons" used in popups.
 
+Added argument for `highlight_row()` to directly click the cell's hyperlink if desired.
+
+Added option for `wait_for_banner()` to close the banner when found.
+    Useful when updating a page and then updating a popup dialog which produces another banner without changing pages.
+
 ## Added
 
 Added function `get_value()` for `UXPlexElement` objects.
+
+Added wrapper functions `click_ok`, `click_apply`, and `click_update` which incorporates the `wait_for_gears` and `wait_for_banner` functions with the ok/apply buttons.
+
+## Fixed
+
+Fixed XPATH selector in `highlight_row()` for checking if a cell contains a hyperlink.
 
 # 0.6.7 [2025-7-30]
 

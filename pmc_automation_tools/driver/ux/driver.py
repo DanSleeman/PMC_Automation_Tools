@@ -85,12 +85,13 @@ class UXDriver(PlexDriver):
                 return None
             raise
 
-    def wait_for_banner(self, timeout:int=10, ignore_exception:bool=False) -> None:
+    def wait_for_banner(self, timeout:int=10, ignore_exception:bool=False, close_banner=False) -> None:
         """Wait for the banner to appear and handle success/error/warning messages.
 
         Args:
             timeout (int, optional): How long to wait for the banner before throwing an exception. Defaults to 10.
             ignore_exception (bool, optional): Don't re-raise an exception if the banner is not found. Defaults to False.
+            close_banner (bool, optional): Close the banner element if found. Defaults to False.
 
         Raises:
             UpdateError: Unexpected banner type.
@@ -105,6 +106,8 @@ class UXDriver(PlexDriver):
                 banner_type = next((BANNER_CLASSES[c] for c in BANNER_CLASSES if c in banner_class), None)
                 if banner_type:
                     self._banner_handler(banner_type, banner)
+                    if close_banner:
+                        banner.find_element(By.CLASS_NAME, 'plex-banner-close').click()
                     break
                 time.sleep(1)
                 loop += 1
@@ -279,7 +282,7 @@ class UXDriver(PlexDriver):
             raise LoginError(environment=self.environment, db=self.test_db, pcn=self.pcn_name, message='Login page not detected. Please validate login credentials and try again.')
         
     
-    def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0, driver:Union['UXDriver','UXPlexElement']=None):
+    def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0, driver:Union['UXDriver','UXPlexElement']=None, click_link:bool=False):
         """
         Clicks a row in a grid with a matching value in the column provided.
 
@@ -287,7 +290,10 @@ class UXDriver(PlexDriver):
             value (str): cell contents to use for finding a matching row
             column (str|int): the column name or index of the column that should be used for matching
             row_offset(int): if there are multiple matching rows, the offset can be used to indicate which of them should be highlighted.
+            driver: starting driver to use if different than self
+            click_link (bool): directly click the column's link instead of only highlighting the row.
         """
+        value = value.lower() #Normalize the value
         driver = driver or self.driver
         column_match = None
         if isinstance(column, str):
@@ -306,23 +312,40 @@ class UXDriver(PlexDriver):
             column = column_match
         try:
             self.debug_logger.debug('Checking if the cell index contains a hyperlink.')
-            link_check = driver.find_element(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a")
+            link_check = driver.find_element(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]//a")
         except:
             link_check = False
         if link_check:
             self.debug_logger.debug('Cell index is a hyperlink.')
-            matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]/a[text()='{value}']")
+            matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column}]//a[translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='{value}']")
         else:
             self.debug_logger.debug('Cell index is not a hyperlink.')
-            matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column} and text()='{value}']")
+            matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@data-col-index={column} and translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='{value}']")
         if len(matching_rows) == 0:
             self.debug_logger.debug(f"Plex grid row not found for column index {column} containing value: {value}.")
             raise GridRowError(f"Plex grid row not found for column index {column} containing value: {value}.")
         if len(matching_rows) > 1:
             self.debugg_logger.debug(f"Multiple rows match the provided text content. Selecting row number {row_offset} from these results.")
-        matching_rows[row_offset].find_element(By.XPATH, '..').click() # Click the TR element to avoid clicking a hyperlink in the TD
+        if click_link:
+            matching_rows[row_offset].click()
+        else:
+            matching_rows[row_offset].find_element(By.XPATH, 'ancestor::tr').click() # Click the TR element to avoid clicking a hyperlink in the TD
         return None
 
+
+    def click_ok(self, driver:Union['UXDriver','UXPlexElement']=None, button_timeout:int=15, gear_timeout:int=10, banner_timeout:int=10, ignore_exception:bool=False, close_banner:bool=False):
+        self.click_update(self, 'Ok', driver, button_timeout, gear_timeout, banner_timeout, ignore_exception, close_banner)
+
+    def click_apply(self, driver:Union['UXDriver','UXPlexElement']=None, button_timeout:int=15, gear_timeout:int=10, banner_timeout:int=10, ignore_exception:bool=False, close_banner:bool=False):
+        self.click_update(self, 'Apply', driver, button_timeout, gear_timeout, banner_timeout, ignore_exception, close_banner)
+
+    def click_update(self, button_text:str, driver:Union['UXDriver','UXPlexElement']=None, button_timeout:int=15, gear_timeout:int=10, banner_timeout:int=10, ignore_exception:bool=False, close_banner:bool=False):
+        """
+        Wrapper for clicking an update button and waiting for the gear loading icon and banner
+        """
+        self.click_button(button_text, driver=driver, timeout=button_timeout)
+        self.wait_for_gears(loading_timeout=gear_timeout)
+        self.wait_for_banner(timeout=banner_timeout, ignore_exception=ignore_exception, close_banner=close_banner)
 
 class UXPlexElement(PlexElement):
     def __init__(self, webelement, parent):
