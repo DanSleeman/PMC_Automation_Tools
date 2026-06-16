@@ -334,10 +334,10 @@ class UXDriver(PlexDriver):
 
 
     def click_ok(self, driver:Union['UXDriver','UXPlexElement']=None, button_timeout:int=15, gear_timeout:int=10, banner_timeout:int=10, ignore_exception:bool=False, close_banner:bool=False):
-        self.click_update(self, 'Ok', driver, button_timeout, gear_timeout, banner_timeout, ignore_exception, close_banner)
+        self.click_update('Ok', driver, button_timeout, gear_timeout, banner_timeout, ignore_exception, close_banner)
 
     def click_apply(self, driver:Union['UXDriver','UXPlexElement']=None, button_timeout:int=15, gear_timeout:int=10, banner_timeout:int=10, ignore_exception:bool=False, close_banner:bool=False):
-        self.click_update(self, 'Apply', driver, button_timeout, gear_timeout, banner_timeout, ignore_exception, close_banner)
+        self.click_update('Apply', driver, button_timeout, gear_timeout, banner_timeout, ignore_exception, close_banner)
 
     def click_update(self, button_text:str, driver:Union['UXDriver','UXPlexElement']=None, button_timeout:int=15, gear_timeout:int=10, banner_timeout:int=10, ignore_exception:bool=False, close_banner:bool=False):
         """
