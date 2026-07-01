@@ -280,8 +280,16 @@ class UXDriver(PlexDriver):
         url = self.driver.current_url
         if not any(url_part in url.upper() for url_part in SIGNON_URL_PARTS):
             raise LoginError(environment=self.environment, db=self.test_db, pcn=self.pcn_name, message='Login page not detected. Please validate login credentials and try again.')
-        
-    
+
+
+    def highlight_row_by_index(self, row_offset:int=0, driver:Union['UXDriver','UXPlexElement']=None):
+        """
+        Highlights a row by the row index with no other considerations to matching content.
+        """
+        driver = driver or self.driver
+        matching_rows = driver.find_elements(By.XPATH, f"//tr[contains(@class,'plex-grid-row selectable')]/td[@class='plex-grid-selection-cell']")
+        matching_rows[row_offset].find_element(By.TAG_NAME, 'input').click()
+
     def highlight_row(self, value:str, column:Union[str|int], row_offset:int=0, driver:Union['UXDriver','UXPlexElement']=None, click_link:bool=False):
         """
         Clicks a row in a grid with a matching value in the column provided.
