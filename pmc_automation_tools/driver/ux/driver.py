@@ -372,6 +372,10 @@ class UXPlexElement(PlexElement):
                     wrapper_element = wrapper_element.find_element(By.XPATH, "./*[1]")
                     wrapper_tag = wrapper_element.tag_name
                     wrapper_class = wrapper_element.get_attribute('class')
+                if wrapper_class == 'plex-composite-element-container':
+                    wrapper_element = wrapper_element.find_element(By.XPATH, ".//input")
+                    wrapper_tag = wrapper_element.tag_name
+                    wrapper_class = wrapper_element.get_attribute('class')
                 if wrapper_tag == 'input':
                     return self.get_attribute('type')
                 if wrapper_class == 'plex-picker-control':

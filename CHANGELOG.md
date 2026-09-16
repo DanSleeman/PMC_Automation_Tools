@@ -27,6 +27,8 @@ Added wrapper functions `click_ok`, `click_apply`, and `click_update` which inco
 
 Fixed XPATH selector in `highlight_row()` for checking if a cell contains a hyperlink.
 
+Fixed `sync` function for cases where the element's wrapper class is `plex-composite-element-container` (Seen in Active/UX checkboxes on security role details)
+
 # 0.6.7 [2025-7-30]
 
 ## Fixed
