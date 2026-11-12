@@ -169,9 +169,17 @@ class PlexDriver(ABC):
             driver = driver or self.driver
             element_condition = _wait_until.get(type)
             if element_condition:
-                WebDriverWait(driver, timeout).until(element_condition((by, value)))
+                wait_result = WebDriverWait(driver, timeout).until(element_condition((by, value)))
+            if isinstance(wait_result, bool):
+                try:
+                    element = driver.find_element(by, value)
+                except NoSuchElementException:
+                    return None
+            else:
+                element = driver.find_element(by, value)
+
             element_class = element_class or PlexElement
-            return element_class(driver.find_element(by, value), self)
+            return element_class(element, self)
 
         except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             if ignore_exception:
@@ -220,7 +228,7 @@ class PlexDriver(ABC):
             self.debug_logger.debug(f'Banner type {banner_type} detected. Banner text: {banner_text}')
             raise UpdateError(banner_text)
 
-    def wait_for_gears(self, selector, loading_timeout=10):
+    def wait_for_gears(self, selector, loading_timeout=10,**kwargs):
         """Wait for the spinning gears image to appear and disappear
 
         This should be called after searching or updating a screen.
@@ -234,11 +242,13 @@ class PlexDriver(ABC):
             selector (tuple[str, str]): Selenium style element selector e.g. (By.NAME, 'ElementName')
             loading_timeout (int, optional): Time to wait until the gears disappear after being detected. Defaults to 10.
         """
+
+        ignore_exception = kwargs.get('ignore_exception',True)
         gears_visible = False
         gears_visible = self.wait_for_element(selector, type=VISIBLE, timeout=1, ignore_exception=True)
         timeout = loading_timeout if gears_visible else 1
         self.debug_logger.debug(f'Timeout for invisible is {timeout}.')
-        self.wait_for_element(selector, type=INVISIBLE, timeout=timeout, ignore_exception=True)
+        self.wait_for_element(selector, type=INVISIBLE, timeout=timeout, ignore_exception=ignore_exception)
 
     def login(self, username, password, company_code, pcn, test_db=True, headless=False, batch_root=''):
         """Log in to Plex

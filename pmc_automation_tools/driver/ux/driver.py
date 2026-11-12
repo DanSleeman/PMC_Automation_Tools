@@ -135,10 +135,10 @@ class UXDriver(PlexDriver):
             raise UpdateError(banner_text, **error_fields)
     
 
-    def wait_for_gears(self, loading_timeout=10) -> None:
-        super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout)
+    def wait_for_gears(self, loading_timeout=10,**kwargs) -> None:
+        super().wait_for_gears(PLEX_GEARS_SELECTOR, loading_timeout,**kwargs)
     gears = wait_for_gears
-    
+
 
     def _find_buttons(self, driver:Union['UXDriver','UXPlexElement']) -> list[WebElement]:
         """Handles both types of 'buttons' that UX uses.
@@ -276,12 +276,27 @@ class UXDriver(PlexDriver):
             raise LoginError(environment=self.environment, db=self.test_db, pcn=pcn, message=f'Unable to login to PCN. Verify you have access.')
     
     
-    def _login_validate(self):
-        url = self.driver.current_url
-        if not any(url_part in url.upper() for url_part in SIGNON_URL_PARTS):
-            raise LoginError(environment=self.environment, db=self.test_db, pcn=self.pcn_name, message='Login page not detected. Please validate login credentials and try again.')
-
-
+    def _login_validate(self, timeout=30, poll_interval=0.5):
+        """
+        Wait up to `timeout` seconds for the browser to land on a sign-on page.
+        Raises LoginError if no matching URL is detected before the timeout.
+        """
+        deadline = time.monotonic() + timeout
+        while True:
+            url = self.driver.current_url
+            if any(url_part in url.upper() for url_part in SIGNON_URL_PARTS):
+                return
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(poll_interval)
+        raise LoginError(
+            'Login page not detected. Please validate login credentials and try again.', 
+            environment=self.environment, 
+            db=self.test_db, 
+            pcn=self.pcn_name, 
+            message='Login page not detected. Please validate login credentials and try again.'
+            )
+        
     def highlight_row_by_index(self, row_offset:int=0, driver:Union['UXDriver','UXPlexElement']=None):
         """
         Highlights a row by the row index with no other considerations to matching content.
@@ -333,7 +348,7 @@ class UXDriver(PlexDriver):
             self.debug_logger.debug(f"Plex grid row not found for column index {column} containing value: {value}.")
             raise GridRowError(f"Plex grid row not found for column index {column} containing value: {value}.")
         if len(matching_rows) > 1:
-            self.debugg_logger.debug(f"Multiple rows match the provided text content. Selecting row number {row_offset} from these results.")
+            self.debug_logger.debug(f"Multiple rows match the provided text content. Selecting row number {row_offset} from these results.")
         if click_link:
             matching_rows[row_offset].click()
         else:
@@ -384,6 +399,8 @@ class UXPlexElement(PlexElement):
                     return 'picker'
                 elif 'ui-textarea-wrapper' in wrapper_class:
                     return 'text'
+            elif wrapper_tag == 'span':
+                return 'read-only'
         except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             if ignore_exception:
                 return ''
@@ -404,19 +421,21 @@ class UXPlexElement(PlexElement):
                 selected_element = self.wait_for_element(
                     (By.XPATH, "preceding-sibling::div[@class='plex-picker-selected-items']"),
                     driver=self,
-                    timeout=1,
+                    timeout=0.1,
                     ignore_exception=True
                 )
                 if selected_element:
                     current_text = self.wait_for_element(
                         (By.CLASS_NAME, "plex-picker-item-text"),
                         driver=selected_element,
-                        timeout=1,
+                        timeout=0.1,
                         ignore_exception=True
                     )
                     if current_text:
                         return current_text.get_property('textContent')
                 return ''
+            elif self.sync_type == 'read-only':
+                return self.text
             else:
                 raise ValueError(f'Unexpected sync type attribute for UXPlexElement object. Value: {self.sync_type}. Expected values checkbox, text, picker')
         else:
@@ -427,7 +446,7 @@ class UXPlexElement(PlexElement):
         date = getattr(kwargs, 'date', False)
         column_delimiter = getattr(kwargs, 'column_delimiter', '\t')
         multi = getattr(kwargs, 'multi', False)
-        if not hasattr(self, 'sync_type'):
+        if not getattr(self, 'sync_type', None):
             self.sync_type = self._type_detect(ignore_exception=True)
         if hasattr(self, 'sync_type'):
             if self.sync_type == 'checkbox':

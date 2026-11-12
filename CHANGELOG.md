@@ -17,17 +17,23 @@ Added argument for `highlight_row()` to directly click the cell's hyperlink if d
 Added option for `wait_for_banner()` to close the banner when found.
     Useful when updating a page and then updating a popup dialog which produces another banner without changing pages.
 
+Added retry loop for login function when detecting if it is on the proper page.
+
 ## Added
 
 Added function `get_value()` for `UXPlexElement` objects.
 
 Added wrapper functions `click_ok`, `click_apply`, and `click_update` which incorporates the `wait_for_gears` and `wait_for_banner` functions with the ok/apply buttons.
 
+Added option to throw error for `wait_for_gears`
+
 ## Fixed
 
 Fixed XPATH selector in `highlight_row()` for checking if a cell contains a hyperlink.
 
 Fixed `sync` function for cases where the element's wrapper class is `plex-composite-element-container` (Seen in Active/UX checkboxes on security role details)
+
+Fixed `wait_for_element` throwing error when waiting for invisibility of element.
 
 # 0.6.7 [2025-7-30]
 
